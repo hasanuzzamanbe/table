@@ -20,13 +20,17 @@
                 <el-form-item label="column Key " required>
                     <el-input v-model="headerData.name" autocomplete="off" :disabled="true"></el-input>
                 </el-form-item>
-                <el-form-item label="Type of column" required>
-                    <el-select v-model="headerData.type" placeholder="Please select a type">
-                        <el-option label="single" value="single" selected></el-option>
+                <el-form-item label="Type of column">
+                    <el-select
+                        v-model="headerData.type"
+                        placeholder="Please select a type"
+                        value="single"
+                    >
+                        <el-option label="single" value="single"></el-option>
                         <el-option label="multiple" value="multiple"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label=" col breakpoint" required>
+                <el-form-item label=" col breakpoint">
                     <el-select
                         v-model="headerData.breakpoint"
                         placeholder="Please select responsive opt."
@@ -38,12 +42,12 @@
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="addcolModal = false">Cancel</el-button>
-                <el-button type="primary" @click="AddHeader()">Confirm</el-button>
+                <el-button type="primary" v-if="headerDataValidate() " @click="AddHeader()">Confirm</el-button>
             </span>
         </el-dialog>
         <!-- dialog end for adding column -->
         <!-- dialog start for adding data -->
-        <el-dialog title="Adding row" :visible.sync="addRowModal">
+        <el-dialog title="Add row data" :visible.sync="addRowModal">
             <el-form>
                 <el-form-item v-for="(dataRow,index) in tableRowObj[0]" :key="index" :label="index">
                     <span>
@@ -51,9 +55,15 @@
                     </span>
                 </el-form-item>
             </el-form>
+            <p v-if="!dataPresent()">You must add table head / column first.</p>
             <span slot="footer" class="dialog-footer">
+                <el-button
+                    type="primary"
+                    v-if="!dataPresent()"
+                    @click="addcolModal=true"
+                >Add Table Head</el-button>
                 <el-button @click="addRowModal = false">Cancel</el-button>
-                <el-button type="primary" @click="addRowData">Confirm</el-button>
+                <el-button type="primary" v-if="dataPresent()" @click="submitRowData">Add Data</el-button>
             </span>
         </el-dialog>
         <!-- dialog ending for data -->
@@ -85,7 +95,13 @@ export default {
       addcolModal: false,
       headerData: {
         name: "",
-        key: "first_name",
+        key: "",
+        type: "single",
+        breakpoint: "a-s"
+      },
+      copyheaderData: {
+        name: "",
+        key: "",
         type: "single",
         breakpoint: "a-s"
       },
@@ -99,21 +115,27 @@ export default {
       this.headerData.key = document.getElementById("nameInput").value;
       this.addHeadSuccess = false;
     },
+    dataPresent() {
+      return this.tableSettings.length !== 0;
+    },
     remove() {
       console.log(this.tableRowObj);
     },
-    addRowData() {
+    submitRowData() {
       this.tableData.push(this.tableRowObj[0]);
       this.tableRowObj = [];
+      this.addDataRow();
     },
     addDataRow() {
-      let length = this.tableSettings.length;
       var dataObj = {};
       this.tableSettings.forEach(elem => {
         dataObj[elem.key] = " ";
       });
       this.tableRowObj.unshift(dataObj);
       this.addRowModal = true;
+    },
+    headerDataValidate() {
+      return this.headerData.name !== "";
     },
     AddHeader() {
       if (
@@ -124,6 +146,7 @@ export default {
       ) {
         this.tableSettings.push(this.headerData);
         this.headerData = {};
+        this.copyheaderData = this.headerData;
         this.addHeadSuccess = true;
       } else {
         alert("please fill all the required");
