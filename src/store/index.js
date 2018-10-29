@@ -6,7 +6,8 @@ Vue.use(Vuex);
 export const store = new Vuex.Store({
     state: {
         loadedTablehead: [],
-        loadedTabledata: []
+        loadedTabledata: [],
+        loading: false
     },
     mutations: {
         setloadedTablehead(state, payload) {
@@ -16,6 +17,16 @@ export const store = new Vuex.Store({
             payload.forEach(element => {
                 state.loadedTabledata.push(element);
             });
+        },
+        setLoading(state, payload) {
+            state.loading = payload;
+        },
+        removeRowData(state, payload) {
+            const tableData = state.loadedTabledata.find(data => {
+                return data.id === payload.id;
+            });
+            let index = this.state.loadedTabledata.indexOf(tableData);
+            state.loadedTabledata.splice(index, 1);
         }
     },
     actions: {
@@ -40,6 +51,7 @@ export const store = new Vuex.Store({
                 });
         },
         loadTableData({ commit }) {
+            commit("setLoading", true);
             firebase
                 .database()
                 .ref("tableData")
@@ -49,9 +61,11 @@ export const store = new Vuex.Store({
                     const obj = data.val();
                     for (let key in obj) {
                         loadedCopyTableData.push(obj[key]);
+                        let length = loadedCopyTableData.length;
+                        loadedCopyTableData[length - 1].id = key;
                     }
                     commit("setloadedTableData", loadedCopyTableData);
-                    // console.log(loadedCopyTableData);
+                    commit("setLoading", false);
                 });
         },
 
@@ -66,11 +80,7 @@ export const store = new Vuex.Store({
             firebase
                 .database()
                 .ref("tableHead")
-                .push(headerData)
-                .then(data => {
-                    console.log(data);
-                });
-            console.log(state.loadedTablehead);
+                .push(headerData);
         },
         tablRowData({ state }, payload) {
             state.loadedTabledata.push(payload);
@@ -81,6 +91,12 @@ export const store = new Vuex.Store({
                 .then(data => {
                     console.log(data);
                 });
+        },
+        removeTableData({ commit }, payload) {
+            let id = "tableData" + "/" + payload.id;
+            let firebaseRef = firebase.database().ref(id);
+            firebaseRef.remove();
+            commit("removeRowData", payload);
         }
     },
 
@@ -90,6 +106,9 @@ export const store = new Vuex.Store({
         },
         loadedTableData(state) {
             return state.loadedTabledata;
+        },
+        loading(state) {
+            return state.loading;
         }
     }
 });

@@ -1,9 +1,5 @@
 <template>
     <div>
-        <img
-            src="https://loading.io/spinners/typing/lg.-text-entering-comment-loader.gif"
-            alt="loading"
-        >
         <el-row>
             <el-button type="primary" @click="addcolModal=true">Add column</el-button>
             <el-button type="success" @click="addDataRow">Add Data</el-button>
@@ -70,6 +66,11 @@
                 <el-button type="primary" v-if="dataPresent()" @click="submitRowData">Add Data</el-button>
             </span>
         </el-dialog>
+        <img
+            v-if="isLoading"
+            src="https://loading.io/spinners/typing/lg.-text-entering-comment-loader.gif"
+            alt="loading"
+        >
         <!-- dialog ending for data -->
         <el-table style="width: 100%" :data="loadedTableData">
             <el-table-column
@@ -81,7 +82,7 @@
             ></el-table-column>
             <el-table-column>
                 <template slot-scope="scope">
-                    <el-button @click="remove(this)" type="text" size="small">Remove</el-button>
+                    <el-button @click="remove(scope.row.id)" type="text" size="small">Remove</el-button>
                     <el-button type="text" size="small">Edit</el-button>
                 </template>
             </el-table-column>
@@ -91,6 +92,8 @@
 
 <script>
 export default {
+  props: ["data", "obj", "loadedTabledata"],
+
   data() {
     return {
       addRowModal: false,
@@ -120,6 +123,9 @@ export default {
     },
     loadedTableData() {
       return this.$store.getters.loadedTableData;
+    },
+    isLoading() {
+      return this.$store.getters.loading;
     }
   },
   methods: {
@@ -134,10 +140,10 @@ export default {
     dataPresent() {
       return this.loadedTableHead.length !== 0;
     },
-    remove() {
-      //   this.tableData.splice(columnIndex - 1, 1);
-      console.log(this);
+    remove(e) {
+      this.$store.dispatch("removeTableData", { id: e });
     },
+
     submitRowData() {
       this.tableData.push(this.tableRowObj[0]);
       this.$store.dispatch("tablRowData", this.tableRowObj[0]);
