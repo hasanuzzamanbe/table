@@ -31,5 +31,6 @@ new Vue({
         });
         this.$store.dispatch("loadTableHead");
         this.$store.dispatch("loadTableData");
+        this.$store.dispatch("loadTableName");
     }
 });

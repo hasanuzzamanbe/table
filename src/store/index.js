@@ -7,6 +7,8 @@ export const store = new Vuex.Store({
     state: {
         loadedTablehead: [],
         loadedTabledata: [],
+        loadedTableName: [],
+        tableIdentityVal: "",
         loading: false
     },
     mutations: {
@@ -16,6 +18,11 @@ export const store = new Vuex.Store({
         setloadedTableData(state, payload) {
             payload.forEach(element => {
                 state.loadedTabledata.push(element);
+            });
+        },
+        setloadedTableName(state, payload) {
+            payload.forEach(element => {
+                state.loadedTableName.push(element);
             });
         },
         setLoading(state, payload) {
@@ -50,8 +57,9 @@ export const store = new Vuex.Store({
                     commit("setloadedTablehead", loadedCopyTableHead);
                 });
         },
-        loadTableData({ commit }) {
+        loadTableData({ commit }, payload) {
             commit("setLoading", true);
+            // const link = payload + "/" + "tableData";
             firebase
                 .database()
                 .ref("tableData")
@@ -66,6 +74,35 @@ export const store = new Vuex.Store({
                     }
                     commit("setloadedTableData", loadedCopyTableData);
                     commit("setLoading", false);
+                });
+        },
+        loadTableName({ commit }, payload) {
+            firebase
+                .database()
+                .ref()
+                .once("value")
+                .then(data => {
+                    var tablesWithNameId = data.val();
+                    var arrOfTableMaster = [];
+                    var getName = Object.entries(tablesWithNameId);
+                    getName.forEach(arrNameId => {
+                        arrOfTableMaster.push(arrNameId);
+                    });
+                    console.log(arrOfTableMaster);
+                    commit("setloadedTableName", arrOfTableMaster);
+                });
+        },
+        setValueOfKey({ state }, payload) {
+            this.tableIdentityVal = payload;
+        },
+
+        createTableWithName({ state }, payload) {
+            firebase
+                .database()
+                .ref()
+                .push(payload.tableNameByUser)
+                .then(data => {
+                    console.log(data.key);
                 });
         },
 
@@ -109,6 +146,9 @@ export const store = new Vuex.Store({
         },
         loading(state) {
             return state.loading;
+        },
+        loadTableNameByUser(state) {
+            return state.loadedTableName;
         }
     }
 });
