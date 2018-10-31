@@ -24,7 +24,7 @@
         <div class="alltable" v-if="checkTablePresent">
             <div class="head">All tables are shown here:</div>
             <div v-for="(tables,index) in allTables" :key="index" class="loopContent">
-                <h3>{{tables[tables.length-1]}}</h3>
+                <h3>{{tables[0]}}</h3>
                 <br>
                 <div class="buttonGroup">
                     <el-button type="Primary" size="mini" @click="editTable(index)">Edit</el-button>
@@ -43,12 +43,14 @@
     </div>
 </template>
 <script>
+import * as firebase from "firebase";
 export default {
   data() {
     return {
       allTables: [],
       nameOfTable: " ",
-      modalVisible: false
+      modalVisible: false,
+      identityKey: ""
     };
   },
   computed: {
@@ -64,30 +66,40 @@ export default {
       //   let key = this.nameOfTable.split(" ").join("s");
       //   var security = Math.floor(1000 + Math.random() * 9000);
       //   let secureKey = key + security;
+      //   , this.identityKey
       if (
         this.nameOfTable !== " " &&
         this.nameOfTable !== "name" &&
         this.nameOfTable !== undefined &&
         this.nameOfTable !== null
       ) {
-        this.allTables.push([this.nameOfTable]);
-        this.$store.dispatch("createTableWithName", {
+        this.createTableWithName({
           tableNameByUser: this.nameOfTable
         });
+
+        this.allTables.push([this.nameOfTable]);
         this.modalVisible = false;
         this.nameOfTable = " ";
       } else {
         alert("please enter a valid name");
       }
     },
+    createTableWithName(payload) {
+      firebase
+        .database()
+        .ref()
+        .push([payload.tableNameByUser])
+        .then(data => {
+          this.allTables[this.allTables.length - 1].push(data.key);
+        });
+    },
     previewTable() {
       this.$router.push("/home");
     },
     editTable(e) {
-      let tableKey = this.allTables[e][0];
+      let tableKey = this.allTables[e][1];
       this.$store.dispatch("setValueOfKey", tableKey);
       this.$router.push("/home");
-      console.log(tableKey);
     },
     deleteTable() {
       console.log("deleteTable");

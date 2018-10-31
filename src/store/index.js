@@ -9,6 +9,7 @@ export const store = new Vuex.Store({
         loadedTabledata: [],
         loadedTableName: [],
         tableIdentityVal: "",
+        // immediateDataKey: "",
         loading: false
     },
     mutations: {
@@ -22,7 +23,7 @@ export const store = new Vuex.Store({
         },
         setloadedTableName(state, payload) {
             payload.forEach(element => {
-                state.loadedTableName.push(element);
+                state.loadedTableName.push([element[1][0], element[0]]);
             });
         },
         setLoading(state, payload) {
@@ -93,17 +94,8 @@ export const store = new Vuex.Store({
                 });
         },
         setValueOfKey({ state }, payload) {
-            this.tableIdentityVal = payload;
-        },
-
-        createTableWithName({ state }, payload) {
-            firebase
-                .database()
-                .ref()
-                .push(payload.tableNameByUser)
-                .then(data => {
-                    console.log(data.key);
-                });
+            state.tableIdentityVal = payload;
+            console.log(state.tableIdentityVal);
         },
 
         tableHeadData({ state }, payload) {
@@ -114,16 +106,21 @@ export const store = new Vuex.Store({
                 breakpoint: payload.breakpoint
             };
             state.loadedTablehead.push(headerData);
+            var idntityKey = state.tableIdentityVal;
+            var path = idntityKey + "/" + "tableHead";
             firebase
                 .database()
-                .ref("tableHead")
+                .ref(path)
                 .push(headerData);
+            console.log(path);
         },
         tablRowData({ state }, payload) {
             state.loadedTabledata.push(payload);
+            var idntityKey = state.tableIdentityVal;
+            var path = idntityKey + "/" + "tableData";
             firebase
                 .database()
-                .ref("tableData")
+                .ref(path)
                 .push(payload)
                 .then(data => {
                     console.log(data);
@@ -150,5 +147,8 @@ export const store = new Vuex.Store({
         loadTableNameByUser(state) {
             return state.loadedTableName;
         }
+        // getImmediateDataKey(state) {
+        //     return state.immediateDataKey;
+        // }
     }
 });
