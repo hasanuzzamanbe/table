@@ -13,9 +13,10 @@ export default new Router({
             component: MainHome
         },
         {
-            path: "/home",
+            path: "/home/:ID",
             name: "Home",
-            component: Home
+            component: Home,
+            props: true
         }
     ]
 });

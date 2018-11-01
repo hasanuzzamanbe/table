@@ -9,7 +9,7 @@ export const store = new Vuex.Store({
         loadedTabledata: [],
         loadedTableName: [],
         tableIdentityVal: "",
-        // immediateDataKey: "",
+        previewMode: true,
         loading: false
     },
     mutations: {
@@ -17,6 +17,7 @@ export const store = new Vuex.Store({
             state.loadedTablehead = payload;
         },
         setloadedTableData(state, payload) {
+            state.loadedTabledata = [];
             payload.forEach(element => {
                 state.loadedTabledata.push(element);
             });
@@ -35,13 +36,21 @@ export const store = new Vuex.Store({
             });
             let index = this.state.loadedTabledata.indexOf(tableData);
             state.loadedTabledata.splice(index, 1);
+        },
+        removeFullTableLocaly(state, payload) {
+            const table = state.loadedTableName.find(data => {
+                return data.id === payload.id;
+            });
+            let index = this.state.loadedTableName.indexOf(table);
+            state.loadedTableName.splice(index, 1);
         }
     },
     actions: {
-        loadTableHead({ commit }) {
+        loadTableHead({ commit }, payload) {
+            var path = payload + "/" + "tableHead";
             firebase
                 .database()
-                .ref("tableHead")
+                .ref(path)
                 .once("value")
                 .then(data => {
                     const loadedCopyTableHead = [];
@@ -60,10 +69,10 @@ export const store = new Vuex.Store({
         },
         loadTableData({ commit }, payload) {
             commit("setLoading", true);
-            // const link = payload + "/" + "tableData";
+            var path = payload + "/" + "tableData";
             firebase
                 .database()
-                .ref("tableData")
+                .ref(path)
                 .once("value")
                 .then(data => {
                     const loadedCopyTableData = [];
@@ -78,6 +87,7 @@ export const store = new Vuex.Store({
                 });
         },
         loadTableName({ commit }, payload) {
+            commit("setLoading", true);
             firebase
                 .database()
                 .ref()
@@ -89,15 +99,19 @@ export const store = new Vuex.Store({
                     getName.forEach(arrNameId => {
                         arrOfTableMaster.push(arrNameId);
                     });
-                    console.log(arrOfTableMaster);
+                    commit("setLoading", false);
                     commit("setloadedTableName", arrOfTableMaster);
                 });
         },
         setValueOfKey({ state }, payload) {
             state.tableIdentityVal = payload;
-            console.log(state.tableIdentityVal);
         },
-
+        previewModeOn({ state }, payload) {
+            state.previewMode = true;
+        },
+        previewModeOff({ state }, payload) {
+            state.previewMode = false;
+        },
         tableHeadData({ state }, payload) {
             const headerData = {
                 name: payload.name,
@@ -123,14 +137,20 @@ export const store = new Vuex.Store({
                 .ref(path)
                 .push(payload)
                 .then(data => {
-                    console.log(data);
+                    // console.log(data);
                 });
         },
         removeTableData({ commit }, payload) {
-            let id = "tableData" + "/" + payload.id;
+            let id = payload.pageKey + "/" + "tableData" + "/" + payload.id;
             let firebaseRef = firebase.database().ref(id);
             firebaseRef.remove();
             commit("removeRowData", payload);
+        },
+        removeFullTable({ commit }, payload) {
+            let id = payload;
+            let firebaseRef = firebase.database().ref(id);
+            firebaseRef.remove();
+            commit("removeFullTableLocaly", payload);
         }
     },
 
@@ -146,9 +166,9 @@ export const store = new Vuex.Store({
         },
         loadTableNameByUser(state) {
             return state.loadedTableName;
+        },
+        previewModeCheck(state) {
+            return state.previewMode;
         }
-        // getImmediateDataKey(state) {
-        //     return state.immediateDataKey;
-        // }
     }
 });

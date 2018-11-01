@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-row>
+        <el-row v-if="!previewModeCheck">
             <el-button type="primary" @click="addcolModal=true">Add column</el-button>
             <el-button type="success" @click="addDataRow">Add Data</el-button>
         </el-row>
@@ -72,7 +72,7 @@
             alt="loading"
         >
         <!-- dialog ending for data -->
-        <el-table style="width: 100%" :data="loadedTableData">
+        <el-table style="width: 100%" :data="loadedTableData" v-if="!isLoading">
             <el-table-column
                 v-for="(column, columnIndex) in loadedTableHead"
                 :key="columnIndex"
@@ -80,7 +80,7 @@
                 :label="column.name"
                 width="150"
             ></el-table-column>
-            <el-table-column>
+            <el-table-column v-if="!previewModeCheck">
                 <template slot-scope="scope">
                     <el-button @click="remove(scope.row.id)" type="text" size="small">Remove</el-button>
                     <el-button type="text" size="small">Edit</el-button>
@@ -92,7 +92,7 @@
 
 <script>
 export default {
-  props: ["data", "obj", "loadedTabledata"],
+  props: ["data", "ID", "loadedTabledata"],
 
   data() {
     return {
@@ -121,6 +121,9 @@ export default {
     loadedTableHead() {
       return this.$store.getters.loadedTableHead;
     },
+    previewModeCheck() {
+      return this.$store.getters.previewModeCheck;
+    },
     loadedTableData() {
       return this.$store.getters.loadedTableData;
     },
@@ -128,6 +131,7 @@ export default {
       return this.$store.getters.loading;
     }
   },
+
   methods: {
     createKey() {
       this.headerData.key = document.getElementById("nameInput").value;
@@ -141,7 +145,7 @@ export default {
       return this.loadedTableHead.length !== 0;
     },
     remove(e) {
-      this.$store.dispatch("removeTableData", { id: e });
+      this.$store.dispatch("removeTableData", { id: e, pageKey: this.ID });
     },
 
     submitRowData() {
@@ -182,3 +186,8 @@ export default {
   }
 };
 </script>
+<style scoped>
+.el-table {
+  margin-left: 30px;
+}
+</style>

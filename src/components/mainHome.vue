@@ -1,9 +1,19 @@
 <template>
     <div>
         <el-container v-if="!checkTablePresent">
-            <el-header>There is No table to show !</el-header>
+            <el-header>
+                <span v-if="!isLoading">There is No table to show !</span>
+                <span v-if="isLoading">your table is loading please wait ......</span>
+            </el-header>
             <el-main>
-                <p>Welcome to table creator world.It seems no table added yet. Please add a table First .</p>
+                <img
+                    v-if="isLoading"
+                    src="https://loading.io/spinners/typing/lg.-text-entering-comment-loader.gif"
+                    alt="loading"
+                >
+                <p
+                    v-if="!isLoading"
+                >Welcome to table creator world.It seems no table added yet. Please add a table First .</p>
             </el-main>
         </el-container>
         <el-dialog :visible.sync="modalVisible">
@@ -28,8 +38,8 @@
                 <br>
                 <div class="buttonGroup">
                     <el-button type="Primary" size="mini" @click="editTable(index)">Edit</el-button>
-                    <el-button type="success" size="mini" @click="previewTable">Preview</el-button>
-                    <el-button type="danger" size="mini" @click="deleteTable">Delete</el-button>
+                    <el-button type="success" size="mini" @click="previewTable(index)">Preview</el-button>
+                    <el-button type="danger" size="mini" @click="deleteTable(index)">Delete</el-button>
                 </div>
             </div>
         </div>
@@ -45,6 +55,7 @@
 <script>
 import * as firebase from "firebase";
 export default {
+  props: ["ID"],
   data() {
     return {
       allTables: [],
@@ -59,14 +70,13 @@ export default {
     },
     loadedTableNameBy() {
       return (this.allTables = this.$store.getters.loadTableNameByUser);
+    },
+    isLoading() {
+      return this.$store.getters.loading;
     }
   },
   methods: {
     tableNameSubmit() {
-      //   let key = this.nameOfTable.split(" ").join("s");
-      //   var security = Math.floor(1000 + Math.random() * 9000);
-      //   let secureKey = key + security;
-      //   , this.identityKey
       if (
         this.nameOfTable !== " " &&
         this.nameOfTable !== "name" &&
@@ -93,16 +103,26 @@ export default {
           this.allTables[this.allTables.length - 1].push(data.key);
         });
     },
-    previewTable() {
-      this.$router.push("/home");
+    previewTable(e) {
+      let tableKey = this.allTables[e][1];
+      this.$store.dispatch("setValueOfKey", tableKey);
+      this.$store.dispatch("previewModeOn");
+
+      this.$router.push(/home/ + tableKey);
+      this.$store.dispatch("loadTableHead", tableKey);
+      this.$store.dispatch("loadTableData", tableKey);
     },
     editTable(e) {
       let tableKey = this.allTables[e][1];
       this.$store.dispatch("setValueOfKey", tableKey);
-      this.$router.push("/home");
+      this.$store.dispatch("previewModeOff");
+      this.$router.push(/home/ + tableKey);
+      this.$store.dispatch("loadTableHead", tableKey);
+      this.$store.dispatch("loadTableData", tableKey);
     },
-    deleteTable() {
-      console.log("deleteTable");
+    deleteTable(e) {
+      let tableKey = this.allTables[e][1];
+      this.$store.dispatch("removeFullTable", tableKey);
     }
   }
 };
