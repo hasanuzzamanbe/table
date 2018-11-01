@@ -39,7 +39,7 @@ export const store = new Vuex.Store({
         },
         removeFullTableLocaly(state, payload) {
             const table = state.loadedTableName.find(data => {
-                return data.id === payload.id;
+                return data[1] === payload;
             });
             let index = this.state.loadedTableName.indexOf(table);
             state.loadedTableName.splice(index, 1);
@@ -137,12 +137,14 @@ export const store = new Vuex.Store({
                 .ref(path)
                 .push(payload)
                 .then(data => {
-                    // console.log(data);
+                    var lastElem =
+                        state.loadedTabledata[state.loadedTabledata.length - 1];
+                    lastElem.id = data.key;
                 });
         },
         removeTableData({ commit }, payload) {
-            let id = payload.pageKey + "/" + "tableData" + "/" + payload.id;
-            let firebaseRef = firebase.database().ref(id);
+            let path = payload.pageKey + "/" + "tableData" + "/" + payload.id;
+            let firebaseRef = firebase.database().ref(path);
             firebaseRef.remove();
             commit("removeRowData", payload);
         },
@@ -150,6 +152,9 @@ export const store = new Vuex.Store({
             let id = payload;
             let firebaseRef = firebase.database().ref(id);
             firebaseRef.remove();
+            // .then(data => {
+            //     alert("Table deleted successfully");
+            // });
             commit("removeFullTableLocaly", payload);
         }
     },

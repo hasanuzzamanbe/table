@@ -50,6 +50,11 @@
             class="plusBtn"
             title="Click To add table"
         >+</el-button>
+        <el-dialog :visible.sync="deleteConfirm">
+            <p>Are you sure to delete this?Ones you delete can't be undone</p>
+            <el-button @click="deleteConfirm = false">Cancel</el-button>
+            <el-button type="warning" @click="confirmedDelete">Confirm Delete</el-button>
+        </el-dialog>
     </div>
 </template>
 <script>
@@ -58,10 +63,12 @@ export default {
   props: ["ID"],
   data() {
     return {
+      deleteConfirm: false,
       allTables: [],
       nameOfTable: " ",
       modalVisible: false,
-      identityKey: ""
+      identityKey: "",
+      e: ""
     };
   },
   computed: {
@@ -76,6 +83,27 @@ export default {
     }
   },
   methods: {
+    nameValidAlert() {
+      this.$notify({
+        title: "Warning",
+        message: "Please enter a valid name",
+        type: "warning"
+      });
+    },
+    tableNameadded() {
+      this.$notify.success({
+        title: "Success",
+        message: "Table added successfully",
+        offset: 100
+      });
+    },
+    tableDeleted() {
+      this.$notify.success({
+        title: "Success",
+        message: "Table deleted successfully",
+        offset: 100
+      });
+    },
     tableNameSubmit() {
       if (
         this.nameOfTable !== " " &&
@@ -91,7 +119,7 @@ export default {
         this.modalVisible = false;
         this.nameOfTable = " ";
       } else {
-        alert("please enter a valid name");
+        this.nameValidAlert();
       }
     },
     createTableWithName(payload) {
@@ -102,6 +130,7 @@ export default {
         .then(data => {
           this.allTables[this.allTables.length - 1].push(data.key);
         });
+      this.tableNameadded();
     },
     previewTable(e) {
       let tableKey = this.allTables[e][1];
@@ -121,8 +150,14 @@ export default {
       this.$store.dispatch("loadTableData", tableKey);
     },
     deleteTable(e) {
-      let tableKey = this.allTables[e][1];
+      this.deleteConfirm = true;
+      this.e = e;
+    },
+    confirmedDelete() {
+      let tableKey = this.allTables[this.e][1];
       this.$store.dispatch("removeFullTable", tableKey);
+      this.tableDeleted();
+      this.deleteConfirm = false;
     }
   }
 };

@@ -46,6 +46,27 @@
             </span>
         </el-dialog>
         <!-- dialog end for adding column -->
+        <!-- for edit modal -->
+        <el-dialog title="edit modal" :visible.sync="editRowModal">
+            <el-form @submit.prevent>
+                <el-form-item
+                    v-for="(dataRow,index) in tableEditObjArr[tableEditObjArr.length-1]"
+                    :key="index"
+                    :label="index"
+                >
+                    <span>
+                        <el-input
+                            id="nameInput"
+                            v-model="tableEditObjArr[tableEditObjArr.length-1][index]"
+                        ></el-input>
+                    </span>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="editRowModal = false">Cancel</el-button>
+                <el-button type="primary" v-if="dataPresent()" @click="submitEditedRowData">Add Data</el-button>
+            </span>
+        </el-dialog>
         <!-- dialog start for adding data -->
         <el-dialog title="Add row data" :visible.sync="addRowModal">
             <el-form @submit.prevent="submitRowData()">
@@ -83,7 +104,7 @@
             <el-table-column v-if="!previewModeCheck">
                 <template slot-scope="scope">
                     <el-button @click="remove(scope.row.id)" type="text" size="small">Remove</el-button>
-                    <el-button type="text" size="small">Edit</el-button>
+                    <el-button @click="editData(scope.row.id)" type="text" size="small">Edit</el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -91,11 +112,13 @@
 </template>
 
 <script>
+import * as firebase from "firebase";
 export default {
   props: ["data", "ID", "loadedTabledata"],
 
   data() {
     return {
+      editRowModal: false,
       addRowModal: false,
       addHeadSuccess: false,
       addDataModal: false,
@@ -106,15 +129,13 @@ export default {
         type: "single",
         breakpoint: "a-s"
       },
-      copyheaderData: {
-        name: "",
-        key: "",
-        type: "single",
-        breakpoint: "a-s"
-      },
       tableSettings: [],
+      tableEditObjArr: [],
+      tableEditObjArr2: [],
       tableRowObj: [],
-      tableData: []
+      tableData: [],
+      uniqpath: "",
+      uniqId: ""
     };
   },
   computed: {
@@ -133,6 +154,34 @@ export default {
   },
 
   methods: {
+    headFieldRequiredAlert() {
+      this.$notify({
+        title: "Warning",
+        message: "Please fill all the required field",
+        type: "warning"
+      });
+    },
+    tableadded() {
+      this.$notify.success({
+        title: "Success",
+        message: "Table Data added successfully",
+        offset: 100
+      });
+    },
+    updatedSuccessAlert() {
+      this.$notify({
+        title: "Success",
+        message: "Data updated successfully",
+        type: "success"
+      });
+    },
+    tableheadadded() {
+      this.$notify.success({
+        title: "Success",
+        message: "Table header added successfully",
+        offset: 100
+      });
+    },
     createKey() {
       this.headerData.key = document.getElementById("nameInput").value;
       this.addHeadSuccess = false;
@@ -147,12 +196,55 @@ export default {
     remove(e) {
       this.$store.dispatch("removeTableData", { id: e, pageKey: this.ID });
     },
+    editData(e) {
+      this.editTableData({
+        id: e,
+        pageKey: this.ID
+      });
+    },
+    editTableData(payload) {
+      let path = payload.pageKey + "/" + "tableData" + "/" + payload.id;
+      this.uniqpath = payload.pageKey + "/" + "tableData";
+      this.uniqId = payload.id;
+      //   let firebaseRef = firebase.database().ref(path);
+      //   firebase
+      //     .database()
+      //     .ref(path)
+      //     .once("value")
+      //     .then(data => {
+      //       this.tableEditObjArr.push(data.val());
+      //       this.tableEditObjArr2.push(data.val());
+      //       this.editRowModal = true;
+      //     });
+      // blocked------------------------
+
+      let editableData = this.loadedTableData.find(data => {
+        if (data.id === payload.id) {
+          return data;
+        }
+      });
+      this.tableEditObjArr.push(editableData);
+      this.editRowModal = true;
+    },
+
+    submitEditedRowData() {
+      firebase
+        .database()
+        .ref(this.uniqpath)
+        .child(this.uniqId)
+        .update(this.tableEditObjArr[this.tableEditObjArr.length - 1])
+        .then(data => {
+          this.editRowModal = false;
+          this.updatedSuccessAlert();
+        });
+    },
 
     submitRowData() {
       this.tableData.push(this.tableRowObj[0]);
       this.$store.dispatch("tablRowData", this.tableRowObj[0]);
       this.tableRowObj = [];
       this.addDataRow();
+      this.tableadded();
     },
     addDataRow() {
       var dataObj = {};
@@ -167,7 +259,8 @@ export default {
     },
     AddHeader() {
       if (
-        this.headerData.name !== "" &&
+        this.headerData.name !== " " &&
+        this.headerData.name !== undefined &&
         this.headerData.key !== "" &&
         this.headerData.breakpoint !== null &&
         this.headerData.breakpoint !== undefined &&
@@ -176,11 +269,12 @@ export default {
       ) {
         this.tableSettings.push(this.headerData);
         this.$store.dispatch("tableHeadData", this.headerData);
-        this.headerData = {};
-        this.copyheaderData = this.headerData;
-        this.addHeadSuccess = true;
+        (this.headerData.name = " "),
+          (this.headerData.key = " "),
+          (this.addHeadSuccess = true);
+        this.tableheadadded();
       } else {
-        alert("please fill all the required");
+        this.headFieldRequiredAlert();
       }
     }
   }
@@ -189,5 +283,8 @@ export default {
 <style scoped>
 .el-table {
   margin-left: 30px;
+}
+.el-table::before {
+  display: none;
 }
 </style>
