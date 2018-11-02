@@ -1,9 +1,36 @@
 <template>
     <div class="tableEditPage">
         <el-row v-if="!previewModeCheck">
-            <el-button type="primary" @click="addcolModal=true">Add column</el-button>
-            <el-button type="success" @click="addDataRow">Add Data</el-button>
-            <el-button type="success" @click="headerEdit">Edit Header</el-button>
+            <el-button type="primary" @click="addcolModal=true" icon="el-icon-plus">Add column</el-button>
+            <el-button type="success" @click="addDataRow" icon="el-icon-plus">Add Data</el-button>
+            <el-button type="success" @click="headerEdit" icon="el-icon-edit">Edit Header</el-button>
+            <el-button type="success" @click="refreshPage()" icon="el-icon-caret-right">Preview</el-button>
+        </el-row>
+        <el-row>
+            <el-form v-on:submit.prevent="searchContent">
+                <el-form-item>
+                    <el-input
+                        id="searchBox"
+                        placeholder="Type to search"
+                        v-model="searchText"
+                        type="text"
+                        style="max-width:236px;float:right;
+                        background-color:darkred;
+                        background: #9c3131 !important;
+                        border-radius: 25px; "
+                    ></el-input>
+                    <el-button
+                        id="searchButton"
+                        type="primary"
+                        icon="el-icon-search"
+                        size="mini"
+                        style="float: right;
+                         position: inherit;
+                         height: 40px;"
+                        @click="searchContent"
+                    >Search</el-button>
+                </el-form-item>
+            </el-form>
         </el-row>
         <!-- dialog start for adding column -->
         <el-dialog title="Adding column" :visible.sync="addcolModal">
@@ -118,7 +145,11 @@
             </el-form>
             <span slot="footer" class="dialog-footer">
                 <el-button @click="editRowModal = false">Cancel</el-button>
-                <el-button type="primary" v-if="dataPresent()" @click="submitEditedRowData">Add Data</el-button>
+                <el-button
+                    type="primary"
+                    v-if="dataPresent()"
+                    @click="submitEditedRowData"
+                >update Data</el-button>
             </span>
         </el-dialog>
         <!-- dialog start for adding data -->
@@ -154,7 +185,6 @@
                 :prop="column.key"
                 :label="column.name"
                 width="150"
-                fixed
             ></el-table-column>
             <el-table-column
                 v-if="!previewModeCheck"
@@ -173,6 +203,34 @@
                 </template>
             </el-table-column>
         </el-table>
+        <!-- search start -->
+        <el-dialog :visible.sync="searchModal">
+            <el-table style="margin-left: 10px;" :data="searchVal">
+                <el-table-column
+                    v-for="(column, columnIndex) in loadedTableHead"
+                    :key="columnIndex"
+                    :prop="column.key"
+                    :label="column.name"
+                    width="150"
+                ></el-table-column>
+                <el-table-column class="settingPanel" fixed="right" label="Operations">
+                    <template slot-scope="scope">
+                        <el-button @click="remove(scope.row.id)" type="text" size="small">
+                            <i class="el-icon-delete"></i>Remove
+                        </el-button>
+                        <el-button @click="editData(scope.row.id)" type="text" size="small">
+                            <i class="el-icon-edit"></i>Edit
+                        </el-button>
+                        <el-button
+                            @click="cloneData(scope.row.id)"
+                            type="text"
+                            size="small"
+                        >Clone Data</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-dialog>
+        <!-- search end -->
     </div>
 </template>
 
@@ -183,6 +241,9 @@ export default {
 
   data() {
     return {
+      searchVal: [],
+      searchModal: false,
+      searchText: "",
       hederDataEditName: [],
       headerDataForEdit: "",
       editSelectedCol: [],
@@ -222,8 +283,40 @@ export default {
       return this.$store.getters.loading;
     }
   },
-
+  ///////////
   methods: {
+    searchContent() {
+      let length = this.searchText.length;
+      let getSearchVal = [];
+      this.searchVal = [];
+      this.loadedTableData.forEach(data => {
+        for (let k in data) {
+          if (
+            data[k]
+              .replace(/ /g, "")
+              .toUpperCase()
+              .substring(0, length) ==
+            this.searchText.replace(/ /g, "").toUpperCase()
+          ) {
+            getSearchVal.push(data);
+          }
+        }
+      });
+      this.searchVal = getSearchVal;
+
+      if (getSearchVal.length !== 0) {
+        this.searchModal = true;
+      } else {
+        this.SearchAlert();
+      }
+    },
+    SearchAlert() {
+      this.$notify({
+        title: "Warning",
+        message: "No Data Found",
+        type: "warning"
+      });
+    },
     headFieldRequiredAlert() {
       this.$notify({
         title: "Warning",
@@ -293,6 +386,9 @@ export default {
           });
         }
       });
+    },
+    refreshPage: function() {
+      window.location.reload();
     },
     editTableData(payload) {
       let path = payload.pageKey + "/" + "tableData" + "/" + payload.id;
@@ -445,4 +541,10 @@ div#columnForEdit button {
     display: none;
   }
 }
+/* //// */
+/* input#searchBox {
+  max-width: 256px !important;
+  float: right !important;
+  background: #ce8686;
+} */
 </style>
