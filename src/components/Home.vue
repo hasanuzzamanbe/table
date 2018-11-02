@@ -3,6 +3,7 @@
         <el-row v-if="!previewModeCheck">
             <el-button type="primary" @click="addcolModal=true">Add column</el-button>
             <el-button type="success" @click="addDataRow">Add Data</el-button>
+            <el-button type="success" @click="headerEdit">Edit Header</el-button>
         </el-row>
         <!-- dialog start for adding column -->
         <el-dialog title="Adding column" :visible.sync="addcolModal">
@@ -46,6 +47,59 @@
             </span>
         </el-dialog>
         <!-- dialog end for adding column -->
+        <!-- dialog for edit column first stage   -->
+        <el-dialog title="Edit column" :visible.sync="headerEditModal1">
+            <div id="columnForEdit" v-for="(item,k) in hederDataEditName" :key="k">
+                {{item}}
+                <span
+                    class="editModalColumnNo"
+                    style="font-size:12px !important"
+                >(This is column no: {{k+1}})</span>
+                <el-button type="warning" @click="editColumnName(k)" size="mini">
+                    <i class="el-icon-edit">Edit</i>
+                </el-button>
+            </div>
+        </el-dialog>
+        <!--end dialog for edited column first stage -->
+        <!-- start dialog for editing column -->
+        <el-dialog title="Edit column" :visible.sync="headerEditModal">
+            <el-form>
+                <el-form-item label="column Name" required>
+                    <el-input id="nameInput" v-model="editSelectedCol.name"></el-input>
+                </el-form-item>
+                <el-form-item label="column Key " required>
+                    <el-input v-model="editSelectedCol.key" autocomplete="off" :disabled="true"></el-input>
+                </el-form-item>
+                <el-form-item label="Type of column">
+                    <el-select
+                        v-model="editSelectedCol.type"
+                        placeholder="Please select a type"
+                        value="single"
+                    >
+                        <el-option label="single" value="single"></el-option>
+                        <el-option label="multiple" value="multiple"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label=" col breakpoint">
+                    <el-select
+                        v-model="editSelectedCol.breakpoint"
+                        placeholder="Please select responsive opt."
+                        selected
+                    >
+                        <el-option label="a-s" value="a-s"></el-option>
+                    </el-select>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="headerEditModal = false">Cancel</el-button>
+                <el-button
+                    type="primary"
+                    v-if="headerEditDataValidate() "
+                    @click="submitEditedColumn()"
+                >Update</el-button>
+            </span>
+        </el-dialog>
+        <!-- end of editing column modal -->
         <!-- for edit modal -->
         <el-dialog title="edit modal" :visible.sync="editRowModal">
             <el-form @submit.prevent>
@@ -100,8 +154,14 @@
                 :prop="column.key"
                 :label="column.name"
                 width="150"
+                fixed
             ></el-table-column>
-            <el-table-column v-if="!previewModeCheck" class="settingPanel">
+            <el-table-column
+                v-if="!previewModeCheck"
+                class="settingPanel"
+                fixed="right"
+                label="Operations"
+            >
                 <template slot-scope="scope">
                     <el-button @click="remove(scope.row.id)" type="text" size="small">
                         <i class="el-icon-delete"></i>Remove
@@ -123,11 +183,16 @@ export default {
 
   data() {
     return {
+      hederDataEditName: [],
+      headerDataForEdit: "",
+      editSelectedCol: [],
       editRowModal: false,
       addRowModal: false,
       addHeadSuccess: false,
       addDataModal: false,
       addcolModal: false,
+      headerEditModal: false,
+      headerEditModal1: false,
       headerData: {
         name: "",
         key: "",
@@ -145,7 +210,7 @@ export default {
   },
   computed: {
     loadedTableHead() {
-      return this.$store.getters.loadedTableHead;
+      return (this.headerDataForEdit = this.$store.getters.loadedTableHead);
     },
     previewModeCheck() {
       return this.$store.getters.previewModeCheck;
@@ -218,22 +283,21 @@ export default {
         pageKey: this.ID
       });
     },
+    pageReloadBug() {
+      this.$alert("Please Reload this page", "Title", {
+        confirmButtonText: "OK",
+        callback: action => {
+          this.$message({
+            type: "info",
+            message: `action: ${action}`
+          });
+        }
+      });
+    },
     editTableData(payload) {
       let path = payload.pageKey + "/" + "tableData" + "/" + payload.id;
       this.uniqpath = payload.pageKey + "/" + "tableData";
       this.uniqId = payload.id;
-      //   let firebaseRef = firebase.database().ref(path);
-      //   firebase
-      //     .database()
-      //     .ref(path)
-      //     .once("value")
-      //     .then(data => {
-      //       this.tableEditObjArr.push(data.val());
-      //       this.tableEditObjArr2.push(data.val());
-      //       this.editRowModal = true;
-      //     });
-      // blocked------------------------
-
       let editableData = this.loadedTableData.find(data => {
         if (data.id === payload.id) {
           return data;
@@ -273,6 +337,10 @@ export default {
     headerDataValidate() {
       return this.headerData.name !== "";
     },
+    headerEditDataValidate() {
+      return this.editSelectedCol.name !== "";
+    },
+
     AddHeader() {
       var keyIsMatch = false;
       var columnKey = this.headerData.key;
@@ -304,7 +372,44 @@ export default {
       } else {
         this.headFieldRequiredAlert();
       }
+    },
+    headerEdit() {
+      var columnAvailable = [];
+      this.headerDataForEdit.forEach(objElem => {
+        columnAvailable.push(objElem.name);
+      });
+      this.hederDataEditName = columnAvailable;
+      this.headerEditModal1 = true;
+    },
+    submitEditedColumn() {
+      if (this.editSelectedCol.id) {
+        let pageId = this.ID;
+        let headDataId = this.editSelectedCol.id;
+        let path = pageId + "/" + "tableHead";
+        firebase
+          .database()
+          .ref(path)
+          .child(headDataId)
+          .update(this.editSelectedCol)
+          .then(data => {
+            this.headerEditModal = false;
+            this.updatedSuccessAlert();
+          });
+      } else {
+        this.headerEditModal = false;
+        this.pageReloadBug();
+      }
+    },
+    editColumnName(k) {
+      //   this.headerDataForEdit = this.$store.getters.loadedTableHead;
+      this.headerEditModal1 = false;
+      this.headerEditModal = true;
+      this.editSelectedCol = this.headerDataForEdit[k];
     }
+  },
+  mounted: function() {
+    this.$store.dispatch("loadTableHead", this.ID);
+    this.$store.dispatch("loadTableData", this.ID);
   }
 };
 </script>
@@ -317,5 +422,27 @@ export default {
 }
 .tableEditPage {
   margin-top: 75px;
+}
+div#columnForEdit {
+  height: 33px;
+  text-align: left;
+  margin-left: 40px;
+  background-color: #698c57;
+  margin-bottom: 16px;
+  color: white;
+  padding-left: 45px;
+  line-height: 32px;
+  font-size: 2vw;
+}
+div#columnForEdit button {
+  margin-right: 26px;
+  float: left;
+  margin-top: 2px;
+  font-size: 14px;
+}
+@media only screen and (max-width: 900px) {
+  .editModalColumnNo {
+    display: none;
+  }
 }
 </style>

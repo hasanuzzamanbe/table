@@ -29,8 +29,6 @@ new Vue({
             storageBucket: "",
             messagingSenderId: "61792409876"
         });
-        this.$store.dispatch("loadTableHead");
-        this.$store.dispatch("loadTableData");
         this.$store.dispatch("loadTableName");
     }
 });
