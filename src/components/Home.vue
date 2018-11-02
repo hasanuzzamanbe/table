@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="tableEditPage">
         <el-row v-if="!previewModeCheck">
             <el-button type="primary" @click="addcolModal=true">Add column</el-button>
             <el-button type="success" @click="addDataRow">Add Data</el-button>
@@ -18,9 +18,9 @@
                     <el-input id="nameInput" v-model="headerData.name" v-on:input="createKey()"></el-input>
                 </el-form-item>
                 <el-form-item label="column Key " required>
-                    <el-input v-model="headerData.name" autocomplete="off" :disabled="true"></el-input>
+                    <el-input v-model="headerData.key" autocomplete="off"></el-input>
                 </el-form-item>
-                <el-form-item label="Type of column" required>
+                <el-form-item label="Type of column">
                     <el-select
                         v-model="headerData.type"
                         placeholder="Please select a type"
@@ -30,7 +30,7 @@
                         <el-option label="multiple" value="multiple"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label=" col breakpoint" required>
+                <el-form-item label=" col breakpoint">
                     <el-select
                         v-model="headerData.breakpoint"
                         placeholder="Please select responsive opt."
@@ -101,10 +101,15 @@
                 :label="column.name"
                 width="150"
             ></el-table-column>
-            <el-table-column v-if="!previewModeCheck">
+            <el-table-column v-if="!previewModeCheck" class="settingPanel">
                 <template slot-scope="scope">
-                    <el-button @click="remove(scope.row.id)" type="text" size="small">Remove</el-button>
-                    <el-button @click="editData(scope.row.id)" type="text" size="small">Edit</el-button>
+                    <el-button @click="remove(scope.row.id)" type="text" size="small">
+                        <i class="el-icon-delete"></i>Remove
+                    </el-button>
+                    <el-button @click="editData(scope.row.id)" type="text" size="small">
+                        <i class="el-icon-edit"></i>Edit
+                    </el-button>
+                    <el-button @click="cloneData(scope.row.id)" type="text" size="small">Clone Data</el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -157,7 +162,7 @@ export default {
     headFieldRequiredAlert() {
       this.$notify({
         title: "Warning",
-        message: "Please fill all the required field",
+        message: "Please fill Name & chose an unique key",
         type: "warning"
       });
     },
@@ -165,6 +170,13 @@ export default {
       this.$notify.success({
         title: "Success",
         message: "Table Data added successfully",
+        offset: 100
+      });
+    },
+    rowDeletedAlert() {
+      this.$notify.success({
+        title: "Success",
+        message: "Table Data deleted successfully",
         offset: 100
       });
     },
@@ -195,6 +207,10 @@ export default {
     },
     remove(e) {
       this.$store.dispatch("removeTableData", { id: e, pageKey: this.ID });
+      this.rowDeletedAlert();
+    },
+    cloneData(e) {
+      this.$store.dispatch("cloneTableData", { id: e, pageKey: this.ID });
     },
     editData(e) {
       this.editTableData({
@@ -258,6 +274,17 @@ export default {
       return this.headerData.name !== "";
     },
     AddHeader() {
+      var keyIsMatch = false;
+      var columnKey = this.headerData.key;
+      var secureKey = Math.floor(1000 + Math.random() * 9000);
+      var copyTableHead = [];
+      this.loadedTableHead.forEach(elem => {
+        if (elem.key === this.headerData.key) {
+          keyIsMatch = true;
+          this.headerData.key = columnKey + secureKey;
+        }
+      });
+
       if (
         this.headerData.name !== " " &&
         this.headerData.name !== undefined &&
@@ -265,12 +292,13 @@ export default {
         this.headerData.breakpoint !== null &&
         this.headerData.breakpoint !== undefined &&
         this.headerData.breakpoint !== "" &&
-        this.headerData.type !== ""
+        this.headerData.type !== "" &&
+        keyIsMatch === false
       ) {
         this.tableSettings.push(this.headerData);
         this.$store.dispatch("tableHeadData", this.headerData);
-        (this.headerData.name = " "),
-          (this.headerData.key = " "),
+        (this.headerData.name = ""),
+          (this.headerData.key = ""),
           (this.addHeadSuccess = true);
         this.tableheadadded();
       } else {
@@ -286,5 +314,8 @@ export default {
 }
 .el-table::before {
   display: none;
+}
+.tableEditPage {
+  margin-top: 75px;
 }
 </style>

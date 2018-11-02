@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="mainHomePage">
         <el-container v-if="!checkTablePresent">
             <el-header>
                 <span v-if="!isLoading">There is No table to show !</span>
@@ -162,7 +162,11 @@ export default {
   }
 };
 </script>
-<style scope>
+<style scoped>
+.mainHomePage {
+  background-color: darkred;
+  min-height: 690px;
+}
 @media only screen and (max-width: 566px) {
   .el-button.is-round {
     margin-top: -9px;
@@ -188,6 +192,7 @@ export default {
   font-size: 23px;
   text-align: center;
   line-height: 60px;
+  margin-top: 75px;
 }
 .el-main {
   border: 2px double darkred;

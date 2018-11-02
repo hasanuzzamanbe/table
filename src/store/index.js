@@ -9,6 +9,7 @@ export const store = new Vuex.Store({
         loadedTabledata: [],
         loadedTableName: [],
         tableIdentityVal: "",
+        clonData: [],
         previewMode: true,
         loading: false
     },
@@ -126,7 +127,6 @@ export const store = new Vuex.Store({
                 .database()
                 .ref(path)
                 .push(headerData);
-            console.log(path);
         },
         tablRowData({ state }, payload) {
             state.loadedTabledata.push(payload);
@@ -148,13 +148,31 @@ export const store = new Vuex.Store({
             firebaseRef.remove();
             commit("removeRowData", payload);
         },
+        cloneTableData({ state }, payload) {
+            state.loadedTabledata.forEach(data => {
+                if (data.id == payload.id) {
+                    var clondata = {};
+                    for (var key in data) {
+                        clondata[key] = data[key];
+                    }
+                    state.clonData = clondata;
+                    state.loadedTabledata.push(state.clonData);
+                    var pageIdntityKey = payload.pageKey;
+                    var path = pageIdntityKey + "/" + "tableData";
+                    firebase
+                        .database()
+                        .ref(path)
+                        .push(state.clonData)
+                        .then(data => {
+                            return (state.clonData.id = data.key);
+                        });
+                }
+            });
+        },
         removeFullTable({ commit }, payload) {
             let id = payload;
             let firebaseRef = firebase.database().ref(id);
             firebaseRef.remove();
-            // .then(data => {
-            //     alert("Table deleted successfully");
-            // });
             commit("removeFullTableLocaly", payload);
         }
     },
