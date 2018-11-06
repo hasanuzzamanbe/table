@@ -1,33 +1,46 @@
 <template>
     <div class="tableEditPage">
         <el-row v-if="!previewModeCheck && !isLoading">
-            <el-button
-                type="primary"
-                @click="addcolModal=true"
-                icon="el-icon-plus"
-                size="small"
-            >Add column</el-button>
-            <el-button type="success" @click="addDataRow" icon="el-icon-plus" size="small">Add Data</el-button>
-            <el-button
-                type="success"
-                @click="headerEdit"
-                icon="el-icon-edit"
-                size="small"
-            >Edit Header</el-button>
-            <el-button
-                type="success"
-                @click="refreshPage()"
-                icon="el-icon-caret-right"
-                size="small"
-            >Reload Page</el-button>
-            <el-button
-                type="success"
-                @click="allTablesShow()"
-                icon="el-icon-caret-right"
-                size="small"
-            >All Table</el-button>
+            <el-button-group>
+                <el-button
+                    type="primary"
+                    @click="addcolModal=true"
+                    icon="el-icon-plus"
+                    size="small"
+                >Add column</el-button>
+                <el-button
+                    type="success"
+                    @click="addDataRow"
+                    icon="el-icon-plus"
+                    size="small"
+                >Add Data</el-button>
+                <el-button
+                    type="success"
+                    @click="headerEdit"
+                    icon="el-icon-edit"
+                    size="small"
+                >Edit Header</el-button>
+                <el-button
+                    type="success"
+                    @click="refreshPage()"
+                    icon="el-icon-refresh"
+                    size="small"
+                >Reload Page</el-button>
+                <el-button
+                    type="success"
+                    @click="allTablesShow()"
+                    icon="el-icon-caret-right"
+                    size="small"
+                >All Table</el-button>
+                <el-button
+                    type="primary"
+                    @click="previewModeOn"
+                    icon="el-icon-caret-right"
+                    size="small"
+                >Preview Table</el-button>
+            </el-button-group>
         </el-row>
-        <el-row v-if="!isLoading">
+        <el-row v-if="!isLoading" style="margin-bottom: -26px;">
             <el-form v-on:submit.native.prevent="searchContent">
                 <el-form-item>
                     <el-input
@@ -218,14 +231,24 @@
                 </template>
             </el-table-column>
         </el-table>
-        <el-button
-            v-if="!isLoading"
-            size="mini"
-            type="primary"
-            @click="allTablesShow"
-            icon="el-icon-arrow-left"
-            style="margin-top:18px"
-        >Back to home</el-button>
+        <el-button-group style="margin-top: 45px;">
+            <el-button
+                v-if="!isLoading"
+                size="mini"
+                type="primary"
+                @click="allTablesShow"
+                icon="el-icon-menu"
+                style="margin-top:18px"
+            >home</el-button>
+            <el-button
+                v-if="!isLoading"
+                size="mini"
+                type="primary"
+                @click="previewModeOff"
+                icon="el-icon-edit"
+                style="margin-top:18px"
+            >edit</el-button>
+        </el-button-group>
         <!-- search start -->
         <el-dialog :visible.sync="searchModal">
             <div v-if="!searchTextPresent">
@@ -314,6 +337,12 @@ export default {
     }
   },
   methods: {
+    previewModeOff() {
+      this.$store.dispatch("previewModeOff");
+    },
+    previewModeOn() {
+      this.$store.dispatch("previewModeOn");
+    },
     allTablesShow() {
       this.$router.push("/");
     },

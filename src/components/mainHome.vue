@@ -28,13 +28,18 @@
                     ></el-input>
                 </span>
             </el-form>
-            <el-button @click="modalVisible = false">Cancel</el-button>
-            <el-button type="primary" @click="tableNameSubmit">Add Table</el-button>
+            <el-button-group style="margin-top:8px">
+                <el-button type="warning" @click="modalVisible = false">Cancel</el-button>
+                <el-button type="primary" @click="tableNameSubmit">Add Table</el-button>
+            </el-button-group>
         </el-dialog>
         <div class="alltable" v-if="checkTablePresent">
             <div class="head">All tables are shown here:</div>
             <div v-for="(tables,index) in allTables" :key="index" class="loopContent">
-                <h3>{{tables[0]}}</h3>
+                <h3>
+                    {{tables[0]}}
+                    <i class="el-icon-edit" @click="editNamefunc(index)"></i>
+                </h3>
                 <br>
                 <div class="buttonGroup">
                     <el-button type="Primary" size="mini" @click="editTable(index)">Edit</el-button>
@@ -43,6 +48,17 @@
                 </div>
             </div>
         </div>
+        <!-- edit name dialog start -->
+        <el-dialog v-if="nameEdit" :visible.sync="nameEdit" style="margin-bottom:4px">
+            <el-form id="nameEditForm" @submit.native.prevent="submitUpdateName">
+                <el-input id="nameEditInput" v-model="nameToEdit"></el-input>
+            </el-form>
+            <el-button-group style="margin-top:18px">
+                <el-button type="primary" @click="nameEdit = false" size="small">Cancel</el-button>
+                <el-button type="success" @click="submitUpdateName" size="small">Update</el-button>
+            </el-button-group>
+        </el-dialog>
+        <!-- edit name dialog end -->
         <el-button
             type="success"
             round
@@ -63,6 +79,9 @@ export default {
   props: ["ID"],
   data() {
     return {
+      keyOfeditElement: "",
+      nameToEdit: "",
+      nameEdit: false,
       deleteConfirm: false,
       allTables: [],
       nameOfTable: " ",
@@ -83,6 +102,23 @@ export default {
     }
   },
   methods: {
+    editNamefunc(e) {
+      this.nameEdit = true;
+      this.nameToEdit = this.allTables[e][0];
+      this.keyOfeditElement = this.allTables[e][1] + "/" + "0";
+    },
+    submitUpdateName() {
+      firebase
+        .database()
+        .ref(this.keyOfeditElement)
+        .set(this.nameToEdit)
+        .then(data => {
+          this.tableNameadded();
+          this.nameEdit = false;
+        });
+
+      window.location.reload();
+    },
     nameValidAlert() {
       this.$notify({
         title: "Warning",
