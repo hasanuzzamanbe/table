@@ -10,7 +10,7 @@ export const store = new Vuex.Store({
         loadedTableName: [],
         tableIdentityVal: "",
         clonData: [],
-        previewMode: true,
+        previewMode: false,
         loading: false
     },
     mutations: {
