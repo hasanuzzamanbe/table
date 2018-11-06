@@ -100,6 +100,11 @@
                 <el-button @click="addcolModal = false">Cancel</el-button>
                 <el-button type="primary" v-if="headerDataValidate() " @click="AddHeader()">Confirm</el-button>
             </span>
+            <el-checkbox
+                v-model="checkedForAddMoreCol"
+                style="float: left;
+                 margin-top: 36px;"
+            >Continue adding</el-checkbox>
         </el-dialog>
         <!-- dialog end for adding column -->
         <!-- dialog for edit column first stage   -->
@@ -157,7 +162,8 @@
         <!-- end of editing column modal -->
         <!--start of edit row/ for edit modal -->
         <el-dialog title="edit modal" :visible.sync="editRowModal">
-            <el-form @submit.prevent>
+            <img v-if="loadingAtModal" src="@/components/loader1.gif" alt="loading">
+            <el-form @submit.prevent v-if="!isLoading && !loadingAtModal">
                 <el-form-item
                     v-for="(dataRow,index) in tableEditObjArr[tableEditObjArr.length-1]"
                     :key="index"
@@ -199,12 +205,13 @@
                 <el-button @click="addRowModal = false">Cancel</el-button>
                 <el-button type="primary" v-if="dataPresent()" @click="submitRowData">Add Data</el-button>
             </span>
+            <el-checkbox
+                v-model="checkedForAddMoreData"
+                style="float: left;
+                 margin-top: 36px;"
+            >Continue adding</el-checkbox>
         </el-dialog>
-        <img
-            v-if="isLoading"
-            src="https://loading.io/spinners/typing/lg.-text-entering-comment-loader.gif"
-            alt="loading"
-        >
+        <img v-if="isLoading" src="@/components/loader1.gif" alt="loading">
         <!-- dialog ending for data -->
         <el-table style="width: 100%" :data="loadedTableData" v-if="!isLoading">
             <el-table-column
@@ -241,18 +248,26 @@
                 style="margin-top:18px"
             >home</el-button>
             <el-button
-                v-if="!isLoading"
+                v-if="!isLoading && previewModeCheck"
                 size="mini"
                 type="primary"
                 @click="previewModeOff"
                 icon="el-icon-edit"
                 style="margin-top:18px"
             >edit</el-button>
+            <el-button
+                v-if="!isLoading && !previewModeCheck"
+                size="mini"
+                @click="helpPage"
+                type="primary"
+                icon="el-icon-info"
+                style="margin-top:18px"
+            >Help</el-button>
         </el-button-group>
         <!-- search start -->
         <el-dialog :visible.sync="searchModal">
             <div v-if="!searchTextPresent">
-                <img src="http://www.nathdwaramart.com/nodata.jpg" alt="">
+                <img src="@/components/nodata.jpg" alt="">
                 <p>There is no data match... you can try with more precise text</p>
                 <p>Note: seach item is not case sensitive</p>
             </div>
@@ -292,6 +307,9 @@ export default {
 
   data() {
     return {
+      loadingAtModal: false,
+      checkedForAddMoreData: true,
+      checkedForAddMoreCol: true,
       searchVal: [],
       searchModal: false,
       searchText: "",
@@ -337,6 +355,9 @@ export default {
     }
   },
   methods: {
+    helpPage() {
+      this.$router.push("/help");
+    },
     previewModeOff() {
       this.$store.dispatch("previewModeOff");
     },
@@ -468,12 +489,14 @@ export default {
     },
 
     submitEditedRowData() {
+      this.loadingAtModal = true;
       firebase
         .database()
         .ref(this.uniqpath)
         .child(this.uniqId)
         .update(this.tableEditObjArr[this.tableEditObjArr.length - 1])
         .then(data => {
+          this.loadingAtModal = false;
           this.editRowModal = false;
           this.updatedSuccessAlert();
         });
@@ -485,6 +508,7 @@ export default {
       this.tableRowObj = [];
       this.addDataRow();
       this.tableadded();
+      this.addRowModal = this.checkedForAddMoreData;
     },
     addDataRow() {
       var dataObj = {};
@@ -515,7 +539,6 @@ export default {
       if (this.headerData.key === "id") {
         this.headerData.key = "id_";
       }
-
       if (
         this.headerData.name !== " " &&
         this.headerData.name !== undefined &&
@@ -528,9 +551,10 @@ export default {
       ) {
         this.tableSettings.push(this.headerData);
         this.$store.dispatch("tableHeadData", this.headerData);
-        (this.headerData.name = ""),
-          (this.headerData.key = ""),
-          this.tableheadadded();
+        this.addcolModal = this.checkedForAddMoreCol;
+        this.headerData.name = "";
+        this.headerData.key = "";
+        this.tableheadadded();
       } else {
         this.headFieldRequiredAlert();
       }
@@ -572,6 +596,8 @@ export default {
   mounted: function() {
     this.$store.dispatch("loadTableHead", this.ID);
     this.$store.dispatch("loadTableData", this.ID);
+
+    this.$store.dispatch("setValueOfKey", this.ID);
   }
 };
 </script>

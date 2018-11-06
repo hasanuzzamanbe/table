@@ -200,7 +200,7 @@ export default {
 </script>
 <style scoped>
 .mainHomePage {
-  background-color: darkred;
+  background-image: linear-gradient(-90deg, #b71212, #3bd89d);
   min-height: 690px;
 }
 @media only screen and (max-width: 566px) {
