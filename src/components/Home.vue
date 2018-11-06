@@ -1,43 +1,23 @@
 <template>
     <div class="tableEditPage">
-        <el-row v-if="!previewModeCheck && !isLoading">
-            <el-button
-                type="primary"
-                @click="addcolModal=true"
-                icon="el-icon-plus"
-                size="small"
-            >Add column</el-button>
-            <el-button type="success" @click="addDataRow" icon="el-icon-plus" size="small">Add Data</el-button>
-            <el-button
-                type="success"
-                @click="headerEdit"
-                icon="el-icon-edit"
-                size="small"
-            >Edit Header</el-button>
-            <el-button
-                type="success"
-                @click="refreshPage()"
-                icon="el-icon-caret-right"
-                size="small"
-            >Reload Page</el-button>
-            <el-button
-                type="success"
-                @click="allTablesShow()"
-                icon="el-icon-caret-right"
-                size="small"
-            >All Table</el-button>
+        <el-row v-if="!previewModeCheck">
+            <el-button type="primary" @click="addcolModal=true" icon="el-icon-plus">Add column</el-button>
+            <el-button type="success" @click="addDataRow" icon="el-icon-plus">Add Data</el-button>
+            <el-button type="success" @click="headerEdit" icon="el-icon-edit">Edit Header</el-button>
+            <el-button type="success" @click="refreshPage()" icon="el-icon-caret-right">Preview</el-button>
         </el-row>
-        <el-row v-if="!isLoading">
-            <el-form v-on:submit.native.prevent="searchContent">
+        <el-row>
+            <el-form v-on:submit.prevent="searchContent">
                 <el-form-item>
                     <el-input
-                        @keydown.native="searchContent()"
                         id="searchBox"
                         placeholder="Type to search"
                         v-model="searchText"
                         type="text"
-                        style="max-width:188px;float:right;"
-                        size="mini"
+                        style="max-width:236px;float:right;
+                        background-color:darkred;
+                        background: #9c3131 !important;
+                        border-radius: 25px; "
                     ></el-input>
                     <el-button
                         id="searchButton"
@@ -46,17 +26,22 @@
                         size="mini"
                         style="float: right;
                          position: inherit;
-                         margin-top:6px;
-                         margin-right:-4px;
-                         "
+                         height: 40px;"
                         @click="searchContent"
-                    ></el-button>
+                    >Search</el-button>
                 </el-form-item>
             </el-form>
         </el-row>
         <!-- dialog start for adding column -->
         <el-dialog title="Adding column" :visible.sync="addcolModal">
             <el-form>
+                <el-alert
+                    v-if="addHeadSuccess"
+                    title="success alert"
+                    type="success"
+                    description="Column is added. Add more?"
+                    show-icon
+                ></el-alert>
                 <el-form-item label="column Name" required>
                     <el-input id="nameInput" v-model="headerData.name" v-on:input="createKey()"></el-input>
                 </el-form-item>
@@ -142,7 +127,7 @@
             </span>
         </el-dialog>
         <!-- end of editing column modal -->
-        <!--start of edit row/ for edit modal -->
+        <!-- for edit modal -->
         <el-dialog title="edit modal" :visible.sync="editRowModal">
             <el-form @submit.prevent>
                 <el-form-item
@@ -218,22 +203,9 @@
                 </template>
             </el-table-column>
         </el-table>
-        <el-button
-            v-if="!isLoading"
-            size="mini"
-            type="primary"
-            @click="allTablesShow"
-            icon="el-icon-arrow-left"
-            style="margin-top:18px"
-        >Back to home</el-button>
         <!-- search start -->
         <el-dialog :visible.sync="searchModal">
-            <div v-if="!searchTextPresent">
-                <img src="http://www.nathdwaramart.com/nodata.jpg" alt="">
-                <p>There is no data match... you can try with more precise text</p>
-                <p>Note: seach item is not case sensitive</p>
-            </div>
-            <el-table style="margin-left: 10px;" :data="searchVal" v-if="searchTextPresent">
+            <el-table style="margin-left: 10px;" :data="searchVal">
                 <el-table-column
                     v-for="(column, columnIndex) in loadedTableHead"
                     :key="columnIndex"
@@ -277,6 +249,7 @@ export default {
       editSelectedCol: [],
       editRowModal: false,
       addRowModal: false,
+      addHeadSuccess: false,
       addDataModal: false,
       addcolModal: false,
       headerEditModal: false,
@@ -308,15 +281,10 @@ export default {
     },
     isLoading() {
       return this.$store.getters.loading;
-    },
-    searchTextPresent() {
-      return this.searchText.length !== 0;
     }
   },
+  ///////////
   methods: {
-    allTablesShow() {
-      this.$router.push("/");
-    },
     searchContent() {
       let length = this.searchText.length;
       let getSearchVal = [];
@@ -335,11 +303,7 @@ export default {
         }
       });
       this.searchVal = getSearchVal;
-      if (getSearchVal.length === 0) {
-        this.searchModal = false;
-        this.searchVal = [];
-        getSearchVal = [];
-      }
+
       if (getSearchVal.length !== 0) {
         this.searchModal = true;
       } else {
@@ -347,9 +311,9 @@ export default {
       }
     },
     SearchAlert() {
-      this.$message({
-        showClose: true,
-        message: "Warning, No Data Found.",
+      this.$notify({
+        title: "Warning",
+        message: "No Data Found",
         type: "warning"
       });
     },
@@ -390,6 +354,7 @@ export default {
     },
     createKey() {
       this.headerData.key = document.getElementById("nameInput").value;
+      this.addHeadSuccess = false;
     },
     directToHeader() {
       this.addRowModal = false;
@@ -483,9 +448,6 @@ export default {
           this.headerData.key = columnKey + secureKey;
         }
       });
-      if (this.headerData.key === "id") {
-        this.headerData.key = "id_";
-      }
 
       if (
         this.headerData.name !== " " &&
@@ -501,7 +463,8 @@ export default {
         this.$store.dispatch("tableHeadData", this.headerData);
         (this.headerData.name = ""),
           (this.headerData.key = ""),
-          this.tableheadadded();
+          (this.addHeadSuccess = true);
+        this.tableheadadded();
       } else {
         this.headFieldRequiredAlert();
       }

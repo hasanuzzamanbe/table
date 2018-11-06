@@ -18,7 +18,7 @@
         </el-container>
         <el-dialog :visible.sync="modalVisible">
             <p style="height: 34px;">Add Your Table Name that you can identify later :)</p>
-            <el-form @submit.native.prevent="tableNameSubmit">
+            <el-form @submit.prevent="tableNameSubmit">
                 <span>
                     <el-input
                         id="nameOfTable"
