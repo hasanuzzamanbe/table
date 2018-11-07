@@ -18,4 +18,22 @@ export default {
   text-align: center;
   color: #2c3e50;
 }
+#addTableModal .el-dialog {
+  background: #171b1f61 !important;
+  border: 2px solid white;
+}
+#NameEditModal .el-dialog {
+  background: #171b1f61 !important;
+  border: 2px solid white;
+}
+
+#deleteTableModal .el-dialog {
+  background: #171b1f61 !important;
+  border: 2px solid white;
+}
+.el-table th,
+.el-table tr {
+  background-color: --base;
+  color: white;
+}
 </style>

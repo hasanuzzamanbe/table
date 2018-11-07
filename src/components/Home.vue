@@ -163,11 +163,15 @@
         <!--start of edit row/ for edit modal -->
         <el-dialog title="edit modal" :visible.sync="editRowModal">
             <img v-if="loadingAtModal" src="@/components/loader1.gif" alt="loading">
-            <el-form @submit.prevent v-if="!isLoading && !loadingAtModal">
+            <el-form
+                @submit.native.prevent="submitEditedRowData"
+                v-if="!isLoading && !loadingAtModal"
+            >
                 <el-form-item
                     v-for="(dataRow,index) in tableEditObjArr[tableEditObjArr.length-1]"
                     :key="index"
                     :label="index"
+                    v-if="index !== 'id'  "
                 >
                     <span>
                         <el-input
@@ -188,7 +192,7 @@
         </el-dialog>
         <!-- dialog start for adding data -->
         <el-dialog title="Add row data" :visible.sync="addRowModal">
-            <el-form @submit.prevent="submitRowData()">
+            <el-form @submit.native.prevent="submitRowData()">
                 <el-form-item v-for="(dataRow,index) in tableRowObj[0]" :key="index" :label="index">
                     <span>
                         <el-input id="nameInput" v-model="tableRowObj[0][index]"></el-input>
@@ -226,15 +230,31 @@
                 class="settingPanel"
                 fixed="right"
                 label="Operations"
+                min-width="150"
             >
                 <template slot-scope="scope">
-                    <el-button @click="remove(scope.row.id)" type="text" size="small">
-                        <i class="el-icon-delete"></i>Remove
+                    <el-button
+                        @click="remove(scope.row.id)"
+                        type="text"
+                        size="small"
+                        class="functionalButtonD"
+                    >
+                        <i class="el-icon-delete"></i>Delete
                     </el-button>
-                    <el-button @click="editData(scope.row.id)" type="text" size="small">
+                    <el-button
+                        @click="editData(scope.row.id)"
+                        type="text"
+                        size="small"
+                        class="functionalButtonE"
+                    >
                         <i class="el-icon-edit"></i>Edit
                     </el-button>
-                    <el-button @click="cloneData(scope.row.id)" type="text" size="small">Clone Data</el-button>
+                    <el-button
+                        @click="cloneData(scope.row.id)"
+                        type="text"
+                        size="small"
+                        class="functionalButtonDp"
+                    >Duplicate</el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -307,6 +327,7 @@ export default {
 
   data() {
     return {
+      foundMatch: [],
       loadingAtModal: false,
       checkedForAddMoreData: true,
       checkedForAddMoreCol: true,
@@ -352,7 +373,8 @@ export default {
     },
     searchTextPresent() {
       return this.searchText.length !== 0;
-    }
+    },
+    filterIdOnEditRow(data) {}
   },
   methods: {
     helpPage() {
@@ -479,15 +501,36 @@ export default {
       let path = payload.pageKey + "/" + "tableData" + "/" + payload.id;
       this.uniqpath = payload.pageKey + "/" + "tableData";
       this.uniqId = payload.id;
+
       let editableData = this.loadedTableData.find(data => {
         if (data.id === payload.id) {
+          this.foundMatch.push(data);
           return data;
         }
       });
+
+      let arrayOfHeader = [];
+      let tableHedNew = this.loadedTableHead.find(data => {
+        arrayOfHeader.push(data.key);
+      });
+      var arr2ofdata = [];
+      let tableDatanew = this.foundMatch.find(data => {
+        arr2ofdata = Object.keys(data);
+      });
+      this.comapringHeadWithData(arrayOfHeader, arr2ofdata, editableData);
       this.tableEditObjArr.push(editableData);
       this.editRowModal = true;
     },
-
+    comapringHeadWithData(arr1, arr2, editableData) {
+      var res = arr1.filter(function(n) {
+        return !this.has(n);
+      }, new Set(arr2));
+      if (res.length !== 0) {
+        res.forEach(newElem => {
+          editableData[newElem] = "";
+        });
+      }
+    },
     submitEditedRowData() {
       this.loadingAtModal = true;
       firebase
@@ -587,7 +630,6 @@ export default {
       }
     },
     editColumnName(k) {
-      //   this.headerDataForEdit = this.$store.getters.loadedTableHead;
       this.headerEditModal1 = false;
       this.headerEditModal = true;
       this.editSelectedCol = this.headerDataForEdit[k];
@@ -633,10 +675,19 @@ div#columnForEdit button {
     display: none;
   }
 }
-/* //// */
-/* input#searchBox {
-  max-width: 256px !important;
-  float: right !important;
-  background: #ce8686;
-} */
+.functionalButtonD:hover {
+  color: #e75656;
+}
+.functionalButtonE:hover {
+  color: #3ca91a;
+}
+.functionalButtonDp:hover {
+  color: #0724ff;
+}
+.el-button--primary:hover {
+  background-color: #1a62ac;
+}
+.el-button--success:hover {
+  background-color: #4ba81d;
+}
 </style>

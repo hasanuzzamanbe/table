@@ -16,8 +16,8 @@
                 >Welcome to table creator world.It seems no table added yet. Please add a table First .</p>
             </el-main>
         </el-container>
-        <el-dialog :visible.sync="modalVisible">
-            <p style="height: 34px;">Add Your Table Name that you can identify later :)</p>
+        <el-dialog :visible.sync="modalVisible" id="addTableModal">
+            <p style="height: 34px; color:white">Add Your Table Name that you can identify later :)</p>
             <el-form @submit.native.prevent="tableNameSubmit">
                 <span>
                     <el-input
@@ -29,8 +29,16 @@
                 </span>
             </el-form>
             <el-button-group style="margin-top:8px">
-                <el-button type="warning" @click="modalVisible = false">Cancel</el-button>
-                <el-button type="primary" @click="tableNameSubmit">Add Table</el-button>
+                <el-button
+                    type="warning"
+                    @click="modalVisible = false"
+                    style="border-top-left-radius: 33px;"
+                >Cancel</el-button>
+                <el-button
+                    type="primary"
+                    @click="tableNameSubmit"
+                    style="border-bottom-right-radius: 33px;"
+                >Add Table</el-button>
             </el-button-group>
         </el-dialog>
         <div class="alltable" v-if="checkTablePresent">
@@ -49,7 +57,12 @@
             </div>
         </div>
         <!-- edit name dialog start -->
-        <el-dialog v-if="nameEdit" :visible.sync="nameEdit" style="margin-bottom:4px">
+        <el-dialog
+            v-if="nameEdit"
+            :visible.sync="nameEdit"
+            style="margin-bottom:4px;"
+            id="NameEditModal"
+        >
             <el-form id="nameEditForm" @submit.native.prevent="submitUpdateName">
                 <el-input id="nameEditInput" v-model="nameToEdit"></el-input>
             </el-form>
@@ -66,10 +79,12 @@
             class="plusBtn"
             title="Click To add table"
         >+</el-button>
-        <el-dialog :visible.sync="deleteConfirm">
-            <p>Are you sure to delete this?Ones you delete can't be undone</p>
-            <el-button @click="deleteConfirm = false">Cancel</el-button>
-            <el-button type="warning" @click="confirmedDelete">Confirm Delete</el-button>
+        <el-dialog :visible.sync="deleteConfirm" id="deleteTableModal">
+            <p style="color:white">Are you sure to delete this?Ones you delete can't be undone</p>
+            <el-button-group>
+                <el-button @click="deleteConfirm = false">Cancel</el-button>
+                <el-button type="warning" @click="confirmedDelete">Confirm Delete</el-button>
+            </el-button-group>
         </el-dialog>
     </div>
 </template>
@@ -200,7 +215,7 @@ export default {
 </script>
 <style scoped>
 .mainHomePage {
-  background-image: linear-gradient(-90deg, #b71212, #3bd89d);
+  background-image: url(http://playfusionlax.com/wp-content/uploads/2013/06/Grey-website-background.jpg);
   min-height: 690px;
 }
 @media only screen and (max-width: 566px) {
@@ -250,7 +265,7 @@ body > .el-container {
   margin-top: -22px;
 }
 .loopContent {
-  background: #5f5a6b;
+  background-image: linear-gradient(-11deg, #409effb5, #e6a23c);
   padding: 16px;
   padding-left: 78px;
   margin-bottom: 2px;

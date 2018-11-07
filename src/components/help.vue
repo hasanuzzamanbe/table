@@ -18,7 +18,7 @@
                         icon="el-icon-caret-left"
                         size="small"
                         style="margin-bottom: 10px;"
-                    >Back to previous</el-button>
+                    >Back to Edit</el-button>
                 </el-button-group>
             </el-row>
         </el-container>
