@@ -40,6 +40,45 @@
                 >Preview Table</el-button>
             </el-button-group>
         </el-row>
+        <el-row
+            style="margin-top: 9px; "
+            v-if="!previewModeCheck && !isLoading"
+            class="function2ndRow"
+        >
+            <el-button
+                type="primary"
+                @click="resetColorOfTable"
+                icon="el-icon-refresh"
+                size="small"
+                style="    margin-left: -151px;
+                       margin-top: 13px;
+                     position: absolute;"
+            >Reset Color</el-button>
+            <el-color-picker
+                id="div-bkgd"
+                v-model="colorOfRow"
+                show-alpha
+                :predefine="predefineColors"
+                size="small"
+                @change="changeColor"
+            ></el-color-picker>
+            <el-button type="success" size="small">Table Color</el-button>
+            <el-button size="small" type="primary">Font-color</el-button>
+            <el-color-picker
+                id="div-color"
+                v-model="colorOfFont"
+                show-alpha
+                :predefine="predefineColors"
+                size="small"
+                @change="fontColorChange"
+            ></el-color-picker>
+        </el-row>
+        <el-col :span="12">
+            <h3
+                style="color:black;text-align:left;margin-left:12px"
+                v-if="!isLoading"
+            >{{this.nameOfTable}}</h3>
+        </el-col>
         <el-row v-if="!isLoading" style="margin-bottom: -26px;">
             <el-form v-on:submit.native.prevent="searchContent">
                 <el-form-item>
@@ -54,12 +93,11 @@
                     ></el-input>
                     <el-button
                         id="searchButton"
-                        type="primary"
                         icon="el-icon-search"
                         size="mini"
                         style="float: right;
                          position: inherit;
-                         margin-top:6px;
+                         margin-top:5px;
                          margin-right:-4px;
                          "
                         @click="searchContent"
@@ -215,15 +253,21 @@
                  margin-top: 36px;"
             >Continue adding</el-checkbox>
         </el-dialog>
-        <img v-if="isLoading" src="@/components/loader1.gif" alt="loading">
+        <img
+            v-if="isLoading"
+            src="@/components/loader1.gif"
+            alt="loading"
+            style="display:block; z-index:87989998"
+        >
         <!-- dialog ending for data -->
-        <el-table style="width: 100%" :data="loadedTableData" v-if="!isLoading">
+        <el-table style="width: 100%;margin-left: 0px;" :data="loadedTableData" v-if="!isLoading">
             <el-table-column
                 v-for="(column, columnIndex) in loadedTableHead"
                 :key="columnIndex"
                 :prop="column.key"
                 :label="column.name"
                 width="150"
+                sortable
             ></el-table-column>
             <el-table-column
                 v-if="!previewModeCheck"
@@ -323,7 +367,7 @@
 <script>
 import * as firebase from "firebase";
 export default {
-  props: ["data", "ID", "loadedTabledata"],
+  props: ["data", "ID"],
 
   data() {
     return {
@@ -355,10 +399,34 @@ export default {
       tableRowObj: [],
       tableData: [],
       uniqpath: "",
-      uniqId: ""
+      uniqId: "",
+      predefineColors: [
+        "#ff4500",
+        "#ff8c00",
+        "#ffd700",
+        "#90ee90",
+        "#00ced1",
+        "#1e90ff",
+        "#c71585",
+        "rgba(255, 69, 0, 0.68)",
+        "rgb(255, 120, 0)",
+        "hsv(51, 100, 98)",
+        "hsva(120, 40, 94, 0.5)",
+        "hsl(181, 100%, 37%)",
+        "hsla(209, 100%, 56%, 0.73)",
+        "#c7158577",
+        "#FFFFFF",
+        "#000000",
+        "#808080"
+      ],
+      colorOfRow: "",
+      colorOfFont: ""
     };
   },
   computed: {
+    nameOfTable() {
+      return this.$store.getters.tableNameGeter;
+    },
     loadedTableHead() {
       return (this.headerDataForEdit = this.$store.getters.loadedTableHead);
     },
@@ -377,6 +445,80 @@ export default {
     filterIdOnEditRow(data) {}
   },
   methods: {
+    resetColorOfTable() {
+      this.colorOfRow = "rgba(255, 255, 255, 1)";
+      this.colorOfFont = "rgba(0, 0, 0, 1)";
+      this.fontColorChange();
+      this.changeColor();
+    },
+    loadColorOfTable() {
+      let path = this.ID + "/" + "colorOfTable";
+      firebase
+        .database()
+        .ref(path)
+        .once("value")
+        .then(data => {
+          this.colorOfRow = data.val();
+          document.documentElement.style.setProperty("--base", this.colorOfRow);
+          this.oddtableColorSet();
+          this.colorOfRow;
+        });
+    },
+    loadFontColorOfTable() {
+      let path = this.ID + "/" + "fontColorOfTable";
+      firebase
+        .database()
+        .ref(path)
+        .once("value")
+        .then(data => {
+          this.colorOfFont = data.val();
+          document.documentElement.style.setProperty(
+            "--base1",
+            this.colorOfFont
+          );
+        });
+    },
+    fontColorChange(e) {
+      document.documentElement.style.setProperty("--base1", this.colorOfFont);
+      this.updateFontColor();
+    },
+    updateFontColor() {
+      let path = this.ID + "/" + "fontColorOfTable";
+      firebase
+        .database()
+        .ref(path)
+        .set(this.colorOfFont)
+        .then(data => {
+          this.colorUpdateAlertForFont();
+        });
+    },
+    oddtableColorSet() {
+      let value = this.colorOfRow;
+      const parts = value.match(/[\d.]+/g);
+      if (parts.length === 3) {
+        parts.push(1);
+      }
+      if (parts[2] < 240) {
+        parts[2] = parseFloat(parts[2]) + 15;
+      }
+      let newColor = `rgba(${parts.join(",")})`;
+      document.documentElement.style.setProperty("--base2", newColor);
+    },
+    changeColor() {
+      document.documentElement.style.setProperty("--base", this.colorOfRow);
+      this.oddtableColorSet();
+      this.updateColor();
+    },
+    updateColor() {
+      let path = this.ID + "/" + "colorOfTable";
+      firebase
+        .database()
+        .ref(path)
+        .set(this.colorOfRow)
+        .then(data => {
+          this.colorUpdateAlert();
+        });
+    },
     helpPage() {
       this.$router.push("/help");
     },
@@ -458,6 +600,20 @@ export default {
         title: "Success",
         message: "Table header added successfully",
         offset: 100
+      });
+    },
+    colorUpdateAlert() {
+      this.$notify({
+        title: "Your Color Changed To",
+        dangerouslyUseHTMLString: true,
+        message: this.colorOfRow
+      });
+    },
+    colorUpdateAlertForFont() {
+      this.$notify({
+        title: "Your Color Changed To",
+        dangerouslyUseHTMLString: true,
+        message: this.colorOfFont
       });
     },
     createKey() {
@@ -638,12 +794,13 @@ export default {
   mounted: function() {
     this.$store.dispatch("loadTableHead", this.ID);
     this.$store.dispatch("loadTableData", this.ID);
-
     this.$store.dispatch("setValueOfKey", this.ID);
+    this.loadColorOfTable();
+    this.loadFontColorOfTable();
   }
 };
 </script>
-<style scoped>
+<style>
 .el-table {
   margin-left: 30px;
 }
@@ -657,7 +814,7 @@ div#columnForEdit {
   height: 33px;
   text-align: left;
   margin-left: 40px;
-  background-color: #698c57;
+  background-color: #3fbea1;
   margin-bottom: 16px;
   color: white;
   padding-left: 45px;
@@ -689,5 +846,56 @@ div#columnForEdit button {
 }
 .el-button--success:hover {
   background-color: #4ba81d;
+}
+.el-table th,
+.el-table tr:nth-child(odd) {
+  background-color: var(--base2);
+  color: var(--base1);
+}
+.el-table th,
+.el-table tr:nth-child(even) {
+  background-color: var(--base);
+  color: var(--base1);
+}
+
+.el-table--enable-row-hover .el-table__body tr:hover > td {
+  background-color: #9ca0a561 !important;
+}
+
+:root {
+  --base: rgb(248, 248, 248);
+  --base1: rgb(31, 29, 29);
+  --base2: rgb(248, 248, 248);
+}
+.el-color-picker__trigger {
+  position: absolute;
+  margin-top: 12px;
+  margin-left: -27px;
+}
+.functionalButtonD,
+.functionalButtonE,
+.functionalButtonDp {
+  color: var(--base1);
+}
+div#div-color {
+  position: absolute;
+  margin-left: 27px;
+}
+.el-color-picker--small .el-color-picker__trigger {
+  height: 35px;
+  width: 32px;
+  margin-top: 11px;
+}
+@media only screen and (max-width: 547px) {
+  .function2ndRow {
+    margin-left: 112px;
+  }
+}
+button#searchButton {
+  background: var(--base);
+  height: 31px;
+}
+input#searchBox {
+  border: 1px solid var(--base);
 }
 </style>

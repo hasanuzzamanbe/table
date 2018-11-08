@@ -31,9 +31,4 @@ export default {
   background: #171b1f61 !important;
   border: 2px solid white;
 }
-.el-table th,
-.el-table tr {
-  background-color: --base;
-  color: white;
-}
 </style>

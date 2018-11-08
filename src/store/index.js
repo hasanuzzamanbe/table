@@ -5,6 +5,7 @@ import * as firebase from "firebase";
 Vue.use(Vuex);
 export const store = new Vuex.Store({
     state: {
+        nameOfTheIdentifyTable: "",
         loadedTablehead: [],
         loadedTabledata: [],
         loadedTableName: [],
@@ -192,6 +193,16 @@ export const store = new Vuex.Store({
         },
         previewModeCheck(state) {
             return state.previewMode;
+        },
+        tableNameGeter(state) {
+            state.loadedTableName.forEach(e1 => {
+                e1.forEach(e2 => {
+                    if (e2 === state.tableIdentityVal) {
+                        return (state.nameOfTheIdentifyTable = e1[0]);
+                    }
+                });
+            });
+            return state.nameOfTheIdentifyTable;
         }
     }
 });
