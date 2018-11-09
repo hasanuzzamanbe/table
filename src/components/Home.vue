@@ -45,15 +45,20 @@
             v-if="!previewModeCheck && !isLoading"
             class="function2ndRow"
         >
-            <el-button
-                type="primary"
-                @click="resetColorOfTable"
-                icon="el-icon-refresh"
-                size="small"
-                style="    margin-left: -151px;
+            <el-tooltip placement="top">
+                <div slot="content">All previous color will
+                    <br>remove & set to default
+                </div>
+                <el-button
+                    type="primary"
+                    @click="resetColorOfTable"
+                    icon="el-icon-refresh"
+                    size="small"
+                    style="    margin-left: -151px;
                        margin-top: 13px;
                      position: absolute;"
-            >Reset Color</el-button>
+                >Reset Color</el-button>
+            </el-tooltip>
             <el-color-picker
                 id="div-bkgd"
                 v-model="colorOfRow"
@@ -72,20 +77,34 @@
                 size="small"
                 @change="fontColorChange"
             ></el-color-picker>
+            <el-checkbox
+                style="margin-left: 50px;"
+                v-model="HideHead"
+                id="headShowHide"
+                @change="showHideHead"
+            >Hide Table head</el-checkbox>
         </el-row>
-        <el-row v-if="!isLoading" class="headerRow">
+        <el-row v-if="!isLoading && !HideHead " class="headerRow">
             <el-col :span="12">
-                <el-form v-on:submit.native.prevent="searchContent">
+                <el-form
+                    v-on:submit.native.prevent="searchContent"
+                    v-if="(loadedTableData.length!==0)"
+                >
                     <el-form-item>
-                        <el-input
-                            @keydown.native="searchContent()"
-                            id="searchBox"
-                            placeholder="Type to search, skip space"
-                            v-model="searchText"
-                            type="text"
-                            style="max-width:188px;float: left;"
-                            size="mini"
-                        ></el-input>
+                        <el-tooltip placement="top">
+                            <div slot="content">Use more than 3 letters
+                                <br>can make your result better
+                            </div>
+                            <el-input
+                                @keydown.native="searchContent()"
+                                id="searchBox"
+                                placeholder="Type to search, Case insensitive"
+                                v-model="searchText"
+                                type="text"
+                                style="max-width:208px;float: left;"
+                                size="mini"
+                            ></el-input>
+                        </el-tooltip>
                         <el-button
                             id="searchButton"
                             icon="el-icon-search"
@@ -253,13 +272,14 @@
                  margin-top: 36px;"
             >Continue adding</el-checkbox>
         </el-dialog>
+        <!-- dialog ending for add data -->
         <img
+            id="loaderImageOnBody"
             v-if="isLoading"
             src="@/components/loader1.gif"
             alt="loading"
             style="display:block; z-index:87989998"
         >
-        <!-- dialog ending for data -->
         <el-table
             style="width: 100%;margin-left: 0px;"
             :data="this.loadData"
@@ -308,6 +328,7 @@
             </el-table-column>
         </el-table>
         <el-pagination
+            v-if="!isLoading"
             background=""
             :current-page="currentPage"
             layout="prev, pager, next"
@@ -350,8 +371,9 @@ export default {
 
   data() {
     return {
+      HideHead: false,
       loadData: [],
-      currentPage: null,
+      currentPage: 1,
       dataCountInFirebase: 50,
       foundMatch: [],
       loadingAtModal: false,
@@ -420,15 +442,22 @@ export default {
     },
     isLoading() {
       return this.$store.getters.loading;
-    },
-    searchTextPresent() {
-      return this.searchText.length !== 0;
     }
   },
   methods: {
+    showHideHead() {
+      let path = this.ID + "/" + "headerStatus";
+      firebase
+        .database()
+        .ref(path)
+        .set(this.HideHead)
+        .then(data => {
+          this.headerStatusAlert();
+        });
+    },
     paginateValue(val) {
-      this.currentPage = val;
-      console.log(`current page: ${val}`);
+      console.log(`current page: ${this.currentPage}`);
+      console.log(this);
     },
     resetColorOfTable() {
       this.colorOfRow = "rgba(255, 255, 255, 1)";
@@ -447,6 +476,14 @@ export default {
           document.documentElement.style.setProperty("--base", this.colorOfRow);
           this.oddtableColorSet();
           this.colorOfRow;
+        });
+      let path1 = this.ID + "/" + "headerStatus";
+      firebase
+        .database()
+        .ref(path1)
+        .once("value")
+        .then(data => {
+          this.HideHead = data.val();
         });
     },
     loadFontColorOfTable() {
@@ -537,13 +574,6 @@ export default {
         }
       }
     },
-    SearchAlert() {
-      this.$message({
-        showClose: true,
-        message: "Warning, No Data Found.",
-        type: "warning"
-      });
-    },
     headFieldRequiredAlert() {
       this.$notify({
         title: "Warning",
@@ -555,6 +585,14 @@ export default {
       this.$notify.success({
         title: "Success",
         message: "Table Data added successfully",
+        offset: 100
+      });
+    },
+
+    headerStatusAlert() {
+      this.$notify.success({
+        title: "Success",
+        message: "Table header status changed",
         offset: 100
       });
     },
@@ -809,6 +847,13 @@ div#columnForEdit button {
     display: none;
   }
 }
+@media only screen and (min-width: 650px) {
+  #loaderImageOnBody {
+    margin-left: 440px;
+    position: absolute;
+  }
+}
+
 .functionalButtonD:hover {
   color: #e75656;
 }
@@ -891,5 +936,15 @@ input#searchBox {
   margin-bottom: -26px;
   border: 2px solid var(--base);
   background-color: var(--base);
+}
+#headShowHide {
+  margin-left: 50px;
+  background: #67c23a;
+  padding: 6px;
+  border-radius: 4px;
+  color: white;
+}
+#headShowHide .el-checkbox__input.is-checked + .el-checkbox__label {
+  color: #822121;
 }
 </style>
