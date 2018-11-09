@@ -73,37 +73,37 @@
                 @change="fontColorChange"
             ></el-color-picker>
         </el-row>
-        <el-col :span="12">
-            <h3
-                style="color:black;text-align:left;margin-left:12px"
-                v-if="!isLoading"
-            >{{this.nameOfTable}}</h3>
-        </el-col>
-        <el-row v-if="!isLoading" style="margin-bottom: -26px;">
-            <el-form v-on:submit.native.prevent="searchContent">
-                <el-form-item>
-                    <el-input
-                        @keydown.native="searchContent()"
-                        id="searchBox"
-                        placeholder="Type to search"
-                        v-model="searchText"
-                        type="text"
-                        style="max-width:188px;float:right;"
-                        size="mini"
-                    ></el-input>
-                    <el-button
-                        id="searchButton"
-                        icon="el-icon-search"
-                        size="mini"
-                        style="float: right;
-                         position: inherit;
-                         margin-top:5px;
-                         margin-right:-4px;
-                         "
-                        @click="searchContent"
-                    ></el-button>
-                </el-form-item>
-            </el-form>
+        <el-row v-if="!isLoading" class="headerRow">
+            <el-col :span="12">
+                <el-form v-on:submit.native.prevent="searchContent">
+                    <el-form-item>
+                        <el-input
+                            @keydown.native="searchContent()"
+                            id="searchBox"
+                            placeholder="Type to search, skip space"
+                            v-model="searchText"
+                            type="text"
+                            style="max-width:188px;float: left;"
+                            size="mini"
+                        ></el-input>
+                        <el-button
+                            id="searchButton"
+                            icon="el-icon-search"
+                            size="mini"
+                            @click="searchContent"
+                        ></el-button>
+                    </el-form-item>
+                </el-form>
+            </el-col>
+            <el-col :span="12">
+                <h3
+                    style="color:black;text-align:left;
+                    margin-left:12px;
+                    font-family: cursive;
+                    text-decoration:underline"
+                    v-if="!isLoading"
+                >{{this.nameOfTable}}</h3>
+            </el-col>
         </el-row>
         <!-- dialog start for adding column -->
         <el-dialog title="Adding column" :visible.sync="addcolModal">
@@ -260,13 +260,18 @@
             style="display:block; z-index:87989998"
         >
         <!-- dialog ending for data -->
-        <el-table style="width: 100%;margin-left: 0px;" :data="loadedTableData" v-if="!isLoading">
+        <el-table
+            style="width: 100%;margin-left: 0px;"
+            :data="this.loadData"
+            v-if="!isLoading"
+            id="tableMain"
+        >
             <el-table-column
                 v-for="(column, columnIndex) in loadedTableHead"
                 :key="columnIndex"
                 :prop="column.key"
                 :label="column.name"
-                width="150"
+                width="auto"
                 sortable
             ></el-table-column>
             <el-table-column
@@ -302,6 +307,13 @@
                 </template>
             </el-table-column>
         </el-table>
+        <el-pagination
+            background=""
+            :current-page="currentPage"
+            layout="prev, pager, next"
+            :total="this.loadedTableData.length"
+            @current-change="paginateValue()"
+        ></el-pagination>
         <el-button-group style="margin-top: 45px;">
             <el-button
                 v-if="!isLoading"
@@ -328,39 +340,6 @@
                 style="margin-top:18px"
             >Help</el-button>
         </el-button-group>
-        <!-- search start -->
-        <el-dialog :visible.sync="searchModal">
-            <div v-if="!searchTextPresent">
-                <img src="@/components/nodata.jpg" alt="">
-                <p>There is no data match... you can try with more precise text</p>
-                <p>Note: seach item is not case sensitive</p>
-            </div>
-            <el-table style="margin-left: 10px;" :data="searchVal" v-if="searchTextPresent">
-                <el-table-column
-                    v-for="(column, columnIndex) in loadedTableHead"
-                    :key="columnIndex"
-                    :prop="column.key"
-                    :label="column.name"
-                    width="150"
-                ></el-table-column>
-                <el-table-column class="settingPanel" fixed="right" label="Operations">
-                    <template slot-scope="scope">
-                        <el-button @click="remove(scope.row.id)" type="text" size="small">
-                            <i class="el-icon-delete"></i>Remove
-                        </el-button>
-                        <el-button @click="editData(scope.row.id)" type="text" size="small">
-                            <i class="el-icon-edit"></i>Edit
-                        </el-button>
-                        <el-button
-                            @click="cloneData(scope.row.id)"
-                            type="text"
-                            size="small"
-                        >Clone Data</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-        </el-dialog>
-        <!-- search end -->
     </div>
 </template>
 
@@ -371,12 +350,13 @@ export default {
 
   data() {
     return {
+      loadData: [],
+      currentPage: null,
+      dataCountInFirebase: 50,
       foundMatch: [],
       loadingAtModal: false,
       checkedForAddMoreData: true,
       checkedForAddMoreCol: true,
-      searchVal: [],
-      searchModal: false,
       searchText: "",
       hederDataEditName: [],
       headerDataForEdit: "",
@@ -433,18 +413,23 @@ export default {
     previewModeCheck() {
       return this.$store.getters.previewModeCheck;
     },
-    loadedTableData() {
-      return this.$store.getters.loadedTableData;
+    loadedTableData: {
+      get: function() {
+        return (this.loadData = this.$store.getters.loadedTableData);
+      }
     },
     isLoading() {
       return this.$store.getters.loading;
     },
     searchTextPresent() {
       return this.searchText.length !== 0;
-    },
-    filterIdOnEditRow(data) {}
+    }
   },
   methods: {
+    paginateValue(val) {
+      this.currentPage = val;
+      console.log(`current page: ${val}`);
+    },
     resetColorOfTable() {
       this.colorOfRow = "rgba(255, 255, 255, 1)";
       this.colorOfFont = "rgba(0, 0, 0, 1)";
@@ -532,32 +517,24 @@ export default {
       this.$router.push("/");
     },
     searchContent() {
-      let length = this.searchText.length;
-      let getSearchVal = [];
-      this.searchVal = [];
-      this.loadedTableData.forEach(data => {
-        for (let k in data) {
-          if (
-            data[k]
-              .replace(/ /g, "")
-              .toUpperCase()
-              .substring(0, length) ==
-            this.searchText.replace(/ /g, "").toUpperCase()
-          ) {
-            getSearchVal.push(data);
+      var input, filter, table, tr, td, i, j;
+      input = this.searchText;
+      filter = input.toUpperCase();
+      table = document.getElementById("tableMain");
+      tr = table.getElementsByTagName("tr");
+      for (i = 0; i < tr.length; i++) {
+        td = tr[i].getElementsByTagName("td");
+        for (j = 0; j < td.length; j++) {
+          let tdata = td[j];
+          if (tdata) {
+            if (tdata.innerHTML.toUpperCase().indexOf(filter) > -1) {
+              tr[i].style.display = "";
+              break;
+            } else {
+              tr[i].style.display = "none";
+            }
           }
         }
-      });
-      this.searchVal = getSearchVal;
-      if (getSearchVal.length === 0) {
-        this.searchModal = false;
-        this.searchVal = [];
-        getSearchVal = [];
-      }
-      if (getSearchVal.length !== 0) {
-        this.searchModal = true;
-      } else {
-        this.SearchAlert();
       }
     },
     SearchAlert() {
@@ -841,6 +818,9 @@ div#columnForEdit button {
 .functionalButtonDp:hover {
   color: #0724ff;
 }
+.function2ndRow {
+  margin-bottom: 12px;
+}
 .el-button--primary:hover {
   background-color: #1a62ac;
 }
@@ -892,10 +872,24 @@ div#div-color {
   }
 }
 button#searchButton {
-  background: var(--base);
-  height: 31px;
+  background: rgb(255, 255, 255);
+  height: 28px;
+  float: left;
+  margin-top: 7px;
+  margin-left: 4px;
+  box-shadow: 2px 3px 2px;
 }
 input#searchBox {
   border: 1px solid var(--base);
+  box-shadow: 2px 2px 2px;
+}
+.el-pagination.is-background .el-pager li:not(.disabled).active {
+  background-color: var(--base);
+  color: var(--base1);
+}
+.headerRow {
+  margin-bottom: -26px;
+  border: 2px solid var(--base);
+  background-color: var(--base);
 }
 </style>

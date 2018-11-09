@@ -72,9 +72,11 @@ export const store = new Vuex.Store({
         loadTableData({ commit }, payload) {
             commit("setLoading", true);
             var path = payload + "/" + "tableData";
+
             firebase
                 .database()
                 .ref(path)
+                // .limitToFirst(3)
                 .once("value")
                 .then(data => {
                     const loadedCopyTableData = [];
