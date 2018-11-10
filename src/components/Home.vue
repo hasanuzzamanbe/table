@@ -1,89 +1,102 @@
 <template>
     <div class="tableEditPage">
-        <el-row v-if="!previewModeCheck && !isLoading">
-            <el-button-group>
-                <el-button
-                    type="primary"
-                    @click="addcolModal=true"
-                    icon="el-icon-plus"
-                    size="small"
-                >Add column</el-button>
-                <el-button
-                    type="success"
-                    @click="addDataRow"
-                    icon="el-icon-plus"
-                    size="small"
-                >Add Data</el-button>
-                <el-button
-                    type="success"
-                    @click="headerEdit"
-                    icon="el-icon-edit"
-                    size="small"
-                >Edit Header</el-button>
-                <el-button
-                    type="success"
-                    @click="refreshPage()"
-                    icon="el-icon-refresh"
-                    size="small"
-                >Reload Page</el-button>
-                <el-button
-                    type="success"
-                    @click="allTablesShow()"
-                    icon="el-icon-caret-right"
-                    size="small"
-                >All Table</el-button>
-                <el-button
-                    type="primary"
-                    @click="previewModeOn"
-                    icon="el-icon-caret-right"
-                    size="small"
-                >Preview Table</el-button>
-            </el-button-group>
-        </el-row>
-        <el-row
-            style="margin-top: 9px; "
-            v-if="!previewModeCheck && !isLoading"
-            class="function2ndRow"
-        >
-            <el-tooltip placement="top">
-                <div slot="content">All previous color will
-                    <br>remove & set to default
-                </div>
-                <el-button
-                    type="primary"
-                    @click="resetColorOfTable"
-                    icon="el-icon-refresh"
-                    size="small"
-                    style="    margin-left: -151px;
-                       margin-top: 13px;
-                     position: absolute;"
-                >Reset Color</el-button>
-            </el-tooltip>
-            <el-color-picker
-                id="div-bkgd"
-                v-model="colorOfRow"
-                show-alpha
-                :predefine="predefineColors"
-                size="small"
-                @change="changeColor"
-            ></el-color-picker>
-            <el-button type="success" size="small">Table Color</el-button>
-            <el-button size="small" type="primary">Font-color</el-button>
-            <el-color-picker
-                id="div-color"
-                v-model="colorOfFont"
-                show-alpha
-                :predefine="predefineColors"
-                size="small"
-                @change="fontColorChange"
-            ></el-color-picker>
-            <el-checkbox
-                style="margin-left: 50px;"
-                v-model="HideHead"
-                id="headShowHide"
-                @change="showHideHead"
-            >Hide Table head</el-checkbox>
-        </el-row>
+        <div class="settingPanel" v-if="!previewModeCheck && !isLoading">
+            <el-row>
+                <el-button-group>
+                    <el-button
+                        type="primary"
+                        @click="addcolModal=true"
+                        icon="el-icon-plus"
+                        size="mini"
+                    >Add column</el-button>
+                    <el-button
+                        type="success"
+                        @click="addDataRow"
+                        icon="el-icon-plus"
+                        size="mini"
+                    >Add Data</el-button>
+                    <el-button
+                        type="success"
+                        @click="headerEdit"
+                        icon="el-icon-edit"
+                        size="mini"
+                    >Edit Header</el-button>
+                    <el-button
+                        type="success"
+                        @click="refreshPage()"
+                        icon="el-icon-refresh"
+                        size="mini"
+                    >Reload Page</el-button>
+                    <el-button
+                        type="success"
+                        @click="allTablesShow()"
+                        icon="el-icon-caret-right"
+                        size="mini"
+                    >All Table</el-button>
+                    <el-button
+                        type="primary"
+                        @click="previewModeOn"
+                        icon="el-icon-caret-right"
+                        size="mini"
+                    >Preview Table</el-button>
+                </el-button-group>
+            </el-row>
+            <el-row style="margin-top: 9px; " class="function2ndRow">
+                <el-tooltip placement="top">
+                    <div slot="content">All previous color will
+                        <br>remove & set to default
+                    </div>
+                    <el-button
+                        type="primary"
+                        @click="resetColorOfTable"
+                        icon="el-icon-refresh"
+                        size="mini"
+                        style="margin-right: 32px;"
+                    >Reset Color</el-button>
+                </el-tooltip>
+                <el-button-group>
+                    <el-tooltip placement="top">
+                        <div slot="content">click left to the button
+                            <br>to change table color
+                        </div>
+                        <el-button type="success" size="mini">Table Color</el-button>
+                    </el-tooltip>
+                    <el-color-picker
+                        id="div-bkgd"
+                        v-model="colorOfRow"
+                        show-alpha
+                        :predefine="predefineColors"
+                        size="mini"
+                        style="margin-top: 0px;
+                          position: absolute;
+                          margin-left: -162px;"
+                        @change="changeColor"
+                    ></el-color-picker>
+                    <el-tooltip placement="top">
+                        <div slot="content">click right to the button
+                            <br>to change font color
+                        </div>
+                        <el-button size="mini" type="primary">Font-color</el-button>
+                    </el-tooltip>
+                    <el-color-picker
+                        id="div-color"
+                        v-model="colorOfFont"
+                        show-alpha
+                        :predefine="predefineColors"
+                        size="mini"
+                        style="position: absolute;
+                          margin-left: 0px;"
+                        @change="fontColorChange"
+                    ></el-color-picker>
+                </el-button-group>
+                <el-checkbox
+                    style="margin-left: 50px;"
+                    v-model="HideHead"
+                    id="headShowHide"
+                    @change="showHideHead"
+                >Hide Table head</el-checkbox>
+            </el-row>
+        </div>
         <el-row v-if="!isLoading && !HideHead " class="headerRow">
             <el-col :span="12">
                 <el-form
@@ -292,6 +305,7 @@
                 :prop="column.key"
                 :label="column.name"
                 width="auto"
+                min-width="150"
                 sortable
             ></el-table-column>
             <el-table-column
@@ -823,6 +837,7 @@ export default {
   display: none;
 }
 .tableEditPage {
+  padding: 15px;
   margin-top: 75px;
 }
 div#columnForEdit {
@@ -892,11 +907,6 @@ div#columnForEdit button {
   --base1: rgb(31, 29, 29);
   --base2: rgb(248, 248, 248);
 }
-.el-color-picker__trigger {
-  position: absolute;
-  margin-top: 12px;
-  margin-left: -27px;
-}
 .functionalButtonD,
 .functionalButtonE,
 .functionalButtonDp {
@@ -909,7 +919,7 @@ div#div-color {
 .el-color-picker--small .el-color-picker__trigger {
   height: 35px;
   width: 32px;
-  margin-top: 11px;
+  /* margin-top: 11px; */
 }
 @media only screen and (max-width: 547px) {
   .function2ndRow {
@@ -940,11 +950,21 @@ input#searchBox {
 #headShowHide {
   margin-left: 50px;
   background: #67c23a;
-  padding: 6px;
+  padding: 4px;
   border-radius: 4px;
   color: white;
 }
 #headShowHide .el-checkbox__input.is-checked + .el-checkbox__label {
   color: #822121;
+  line-height: 14px;
+}
+.settingPanel {
+  background-color: #daceced4;
+  padding-top: 12px;
+  padding-bottom: 4px;
+  margin-bottom: 13px;
+  margin-top: -35px;
+  border: 1px solid darkred;
+  box-shadow: 2px 4px 8px #230707;
 }
 </style>

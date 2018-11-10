@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import * as firebase from "firebase";
+import axios from "axios";
 
 Vue.use(Vuex);
 export const store = new Vuex.Store({
@@ -73,12 +74,22 @@ export const store = new Vuex.Store({
             commit("setLoading", true);
             var path = payload + "/" + "tableData";
 
+            axios
+                .get(
+                    "https://table-71bc2.firebaseio.com/-LQlaoD5b2lvLnDk59S0/tableData" +
+                        ".json?shallow=true"
+                )
+                .then(snap => {
+                    console.log("axios data", snap.data);
+                });
+
             firebase
                 .database()
                 .ref(path)
                 // .limitToFirst(3)
                 .once("value")
                 .then(data => {
+                    console.log("firebase data", data);
                     const loadedCopyTableData = [];
                     const obj = data.val();
                     for (let key in obj) {
