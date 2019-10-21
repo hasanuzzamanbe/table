@@ -2,8 +2,8 @@
 > A vue cli project
 
 ### Project details:
-It is a very basic project if you a beginner of Vue js and firebase. I did that as a beginner.
-In this example project, you may learn how to use vue.js with element-ui. 
+It is a very basic project if you are a beginner of Vue js and firebase. I did that as a beginner.
+In this example project, you may learn how to use vue.js with element-ui and 
 The backend setup with NoSQL by google firebase.
 
 
