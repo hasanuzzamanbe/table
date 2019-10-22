@@ -233,7 +233,7 @@ export default {
   border-radius: 33px !important;
   font-size: 50px;
   margin-top: -28px;
-  padding: 4px 16px !important;
+  padding: 6px 16px !important;
   position: absolute;
 }
 .el-header {
