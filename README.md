@@ -1,4 +1,4 @@
-# Table
+# Table (https://vue-table.netlify.com)
 > A vue cli project
 
 ### Project details:
