@@ -215,7 +215,6 @@ export default {
 </script>
 <style scoped>
 .mainHomePage {
-  background-image: url(http://playfusionlax.com/wp-content/uploads/2013/06/Grey-website-background.jpg);
   min-height: 690px;
 }
 @media only screen and (max-width: 566px) {
