@@ -45,3 +45,5 @@ For a detailed explanation on how things work, check out the [guide](http://vuej
 
 ### Support
 If you have any questions about Vue.js, element-ui(a library of Vue js), and firebase setup. Fell free to ask me.
+
+For Faster response please text me on <a href="https://www.hasanuzzaman.com" target="_blank">hasanuzzaman.com</a> live chat.
