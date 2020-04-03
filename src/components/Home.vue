@@ -729,7 +729,6 @@ export default {
           this.updatedSuccessAlert();
         });
     },
-
     submitRowData() {
       this.tableData.push(this.tableRowObj[0]);
       this.$store.dispatch("tablRowData", this.tableRowObj[0]);
@@ -857,18 +856,6 @@ div#columnForEdit button {
   margin-top: 2px;
   font-size: 14px;
 }
-@media only screen and (max-width: 900px) {
-  .editModalColumnNo {
-    display: none;
-  }
-}
-@media only screen and (min-width: 650px) {
-  #loaderImageOnBody {
-    margin-left: 440px;
-    position: absolute;
-  }
-}
-
 .functionalButtonD:hover {
   color: #e75656;
 }
@@ -921,11 +908,6 @@ div#div-color {
   width: 32px;
   /* margin-top: 11px; */
 }
-@media only screen and (max-width: 547px) {
-  .function2ndRow {
-    margin-left: 112px;
-  }
-}
 button#searchButton {
   background: rgb(255, 255, 255);
   height: 28px;
@@ -966,5 +948,21 @@ input#searchBox {
   margin-top: -35px;
   border: 1px solid darkred;
   box-shadow: 2px 4px 8px #230707;
+}
+@media only screen and (max-width: 900px) {
+  .editModalColumnNo {
+    display: none;
+  }
+}
+@media only screen and (min-width: 650px) {
+  #loaderImageOnBody {
+    margin-left: 440px;
+    position: absolute;
+  }
+}
+@media only screen and (max-width: 547px) {
+  .function2ndRow {
+    margin-left: 112px;
+  }
 }
 </style>
