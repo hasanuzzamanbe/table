@@ -257,17 +257,13 @@ body > .el-container {
 }
 .alltable {
   text-align: left;
-  background: #966c7b;
-  color: whitesmoke;
 }
 .buttonGroup {
   margin-top: -22px;
 }
 .loopContent {
-  background-image: linear-gradient(-11deg, #409effb5, #e6a23c);
-  padding: 16px;
-  padding-left: 78px;
-  margin-bottom: 2px;
+  border: 1px solid #607d8b2e;
+  padding: 12px;
 }
 .el-button--mini,
 .el-button--mini.is-round {
