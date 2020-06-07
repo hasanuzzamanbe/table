@@ -6,11 +6,6 @@
                 <span v-if="isLoading">your table is loading please wait ......</span>
             </el-header>
             <el-main>
-                <img
-                    v-if="isLoading"
-                    src="https://loading.io/spinners/typing/lg.-text-entering-comment-loader.gif"
-                    alt="loading"
-                >
                 <p
                     v-if="!isLoading"
                 >Welcome to table creator world.It seems no table added yet. Please add a table First .</p>
@@ -110,7 +105,11 @@ export default {
       return this.loadedTableNameBy.length !== 0;
     },
     loadedTableNameBy() {
-      return (this.allTables = this.$store.getters.loadTableNameByUser);
+      let data = this.$store.getters.loadTableNameByUser;
+      if(data.length !== 0) {
+        return this.allTables = data;
+      }
+      return this.allTables = [];
     },
     isLoading() {
       return this.$store.getters.loading;

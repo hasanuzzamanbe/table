@@ -470,8 +470,6 @@ export default {
         });
     },
     paginateValue(val) {
-      console.log(`current page: ${this.currentPage}`);
-      console.log(this);
     },
     resetColorOfTable() {
       this.colorOfRow = "rgba(255, 255, 255, 1)";
@@ -530,8 +528,9 @@ export default {
     },
     oddtableColorSet() {
       let value = this.colorOfRow;
-      const parts = value.match(/[\d.]+/g);
-      if (parts.length === 3) {
+      if(value){
+        var parts = value.match(/[\d.]+/g);
+        if (parts.length === 3) {
         parts.push(1);
       }
       if (parts[2] < 240) {
@@ -539,6 +538,7 @@ export default {
       }
       let newColor = `rgba(${parts.join(",")})`;
       document.documentElement.style.setProperty("--base2", newColor);
+      }
     },
     changeColor() {
       document.documentElement.style.setProperty("--base", this.colorOfRow);
